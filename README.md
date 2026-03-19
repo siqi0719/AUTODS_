@@ -521,7 +521,7 @@ numpy>=1.20.0
 
 ## ✅ Version History
 
-**v1.0** (Current)
+**v0.0** (Current)
 - Complete 6-stage pipeline
 - Standalone Stage 6 implementation
 - Zero LangChain dependencies
