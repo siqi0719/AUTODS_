@@ -1,0 +1,829 @@
+{
+  "meta": {
+    "project_name": "AutoDS Pipeline",
+    "dataset_name": "Processed Dataset",
+    "timestamp": "2026-03-20 00:07:48.437503"
+  },
+  "data_understanding": {
+    "status": "success",
+    "output_dir": "D:\\LangChain\\AUTODS_\\autods_pipeline_output\\01_understanding",
+    "generated_files": [
+      "data_profile.json",
+      "data_quality_report.json",
+      "target_analysis.json",
+      "data_understanding_summary.json",
+      "data_understanding_metadata.json"
+    ]
+  },
+  "data_cleaning": {},
+  "feature_engineering": {
+    "target_column": "target",
+    "problem_type": "classification",
+    "task_description": "AutoDS Feature Engineering",
+    "llm_plan_status": "disabled_or_unavailable",
+    "llm_actions_count": 0,
+    "llm_actions_applied": [],
+    "dropped_columns": {
+      "general_drop": [
+        "customer_id",
+        "income"
+      ],
+      "constant_columns": [],
+      "high_correlation_drop": []
+    },
+    "used_columns": {
+      "numeric": [
+        "age",
+        "credit_score",
+        "purchase_history"
+      ],
+      "categorical": [],
+      "datetime": [],
+      "text": [],
+      "bool_as_numeric": []
+    },
+    "final_feature_count": 3
+  },
+  "modeling": {
+    "status": "success",
+    "problem_type": "classification",
+    "primary_metric": "roc_auc",
+    "leaderboard": [
+      {
+        "rank": 1,
+        "model_name": "lightgbm",
+        "cv_runtime_seconds": 0.2252,
+        "cv_accuracy": 0.5591666666666667,
+        "cv_precision": 0.6206060606060606,
+        "cv_recall": 0.6555555555555556,
+        "cv_f1": 0.6203842940685045,
+        "cv_roc_auc": 0.6306216931216931,
+        "cv_std_accuracy": 0.09046177830074606,
+        "cv_std_precision": 0.11282172647635563,
+        "cv_std_recall": 0.13704329315048902,
+        "cv_std_f1": 0.07028594553271808,
+        "cv_std_roc_auc": 0.11505047378014054,
+        "test_accuracy": 0.65,
+        "test_precision": 0.6666666666666666,
+        "test_recall": 0.7272727272727273,
+        "test_f1": 0.6956521739130435,
+        "test_roc_auc": 0.707070707070707
+      },
+      {
+        "rank": 2,
+        "model_name": "xgboost",
+        "cv_runtime_seconds": 1.1315,
+        "cv_accuracy": 0.6633333333333333,
+        "cv_precision": 0.758939393939394,
+        "cv_recall": 0.6555555555555556,
+        "cv_f1": 0.6783179668628586,
+        "cv_roc_auc": 0.6548941798941799,
+        "cv_std_accuracy": 0.0559885901074694,
+        "cv_std_precision": 0.1414801072694829,
+        "cv_std_recall": 0.15401018084032347,
+        "cv_std_f1": 0.06359138788055199,
+        "cv_std_roc_auc": 0.12124976749194216,
+        "test_accuracy": 0.6,
+        "test_precision": 0.6153846153846154,
+        "test_recall": 0.7272727272727273,
+        "test_f1": 0.6666666666666666,
+        "test_roc_auc": 0.6868686868686869
+      },
+      {
+        "rank": 3,
+        "model_name": "random_forest",
+        "cv_runtime_seconds": 1.533,
+        "cv_accuracy": 0.5875,
+        "cv_precision": 0.6205555555555555,
+        "cv_recall": 0.7027777777777777,
+        "cv_f1": 0.6560371517027864,
+        "cv_roc_auc": 0.6113756613756615,
+        "cv_std_accuracy": 0.14151953143569188,
+        "cv_std_precision": 0.11335741295175712,
+        "cv_std_recall": 0.12717247935843998,
+        "cv_std_f1": 0.11324838724089531,
+        "cv_std_roc_auc": 0.1410704208458886,
+        "test_accuracy": 0.55,
+        "test_precision": 0.5714285714285714,
+        "test_recall": 0.7272727272727273,
+        "test_f1": 0.64,
+        "test_roc_auc": 0.595959595959596
+      },
+      {
+        "rank": 4,
+        "model_name": "svm_rbf",
+        "cv_runtime_seconds": 0.05,
+        "cv_accuracy": 0.5199999999999999,
+        "cv_precision": 0.5878571428571429,
+        "cv_recall": 0.4444444444444445,
+        "cv_f1": 0.5032880844645551,
+        "cv_roc_auc": 0.533068783068783,
+        "cv_std_accuracy": 0.09455304213920233,
+        "cv_std_precision": 0.0811775579724307,
+        "cv_std_recall": 0.12203268131382666,
+        "cv_std_f1": 0.10675999002379459,
+        "cv_std_roc_auc": 0.10891232695956331,
+        "test_accuracy": 0.55,
+        "test_precision": 0.5833333333333334,
+        "test_recall": 0.6363636363636364,
+        "test_f1": 0.6086956521739131,
+        "test_roc_auc": 0.4949494949494949
+      },
+      {
+        "rank": 5,
+        "model_name": "logistic_regression",
+        "cv_runtime_seconds": 0.0928,
+        "cv_accuracy": 0.36249999999999993,
+        "cv_precision": 0.4166666666666667,
+        "cv_recall": 0.3472222222222222,
+        "cv_f1": 0.3777310924369748,
+        "cv_roc_auc": 0.3355820105820106,
+        "cv_std_accuracy": 0.06922186552431729,
+        "cv_std_precision": 0.08307783963032334,
+        "cv_std_recall": 0.06334307917217433,
+        "cv_std_f1": 0.06934873631367111,
+        "cv_std_roc_auc": 0.09206729299457762,
+        "test_accuracy": 0.4,
+        "test_precision": 0.42857142857142855,
+        "test_recall": 0.2727272727272727,
+        "test_f1": 0.3333333333333333,
+        "test_roc_auc": 0.3939393939393939
+      }
+    ],
+    "best_model_name": "lightgbm",
+    "best_model": "Pipeline(steps=[('imputer', SimpleImputer(strategy='median')),\n                ('model',\n                 LGBMClassifier(learning_rate=0.05, n_estimators=300,\n                                random_state=42, verbose=-1))])",
+    "best_model_metrics": {
+      "rank": 1,
+      "model_name": "lightgbm",
+      "cv_runtime_seconds": 0.2252,
+      "cv_accuracy": 0.5591666666666667,
+      "cv_precision": 0.6206060606060606,
+      "cv_recall": 0.6555555555555556,
+      "cv_f1": 0.6203842940685045,
+      "cv_roc_auc": 0.6306216931216931,
+      "cv_std_accuracy": 0.09046177830074606,
+      "cv_std_precision": 0.11282172647635563,
+      "cv_std_recall": 0.13704329315048902,
+      "cv_std_f1": 0.07028594553271808,
+      "cv_std_roc_auc": 0.11505047378014054,
+      "test_accuracy": 0.65,
+      "test_precision": 0.6666666666666666,
+      "test_recall": 0.7272727272727273,
+      "test_f1": 0.6956521739130435,
+      "test_roc_auc": 0.707070707070707
+    },
+    "predictions": {
+      "logistic_regression": {
+        "test_predictions": [
+          1,
+          0,
+          0,
+          1,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          1
+        ],
+        "test_truth": [
+          1,
+          0,
+          1,
+          0,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          0,
+          0,
+          1,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0
+        ],
+        "test_scores": [
+          0.528984499942429,
+          0.4709092999801586,
+          0.4923084845271073,
+          0.5611821787463016,
+          0.4871599678500854,
+          0.4617949818871583,
+          0.5165931279254471,
+          0.46332815324793813,
+          0.48327478787503114,
+          0.492958113331987,
+          0.4715911668831796,
+          0.5303379587601305,
+          0.4751206127459161,
+          0.513373271820988,
+          0.4709108593447788,
+          0.4698082540062242,
+          0.4645877894695927,
+          0.4834984138010132,
+          0.5184764039653722,
+          0.5303919505603675
+        ]
+      },
+      "random_forest": {
+        "test_predictions": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          0,
+          1,
+          0,
+          1,
+          1,
+          1,
+          1,
+          0,
+          0,
+          1,
+          0,
+          0,
+          1
+        ],
+        "test_truth": [
+          1,
+          0,
+          1,
+          0,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          0,
+          0,
+          1,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0
+        ],
+        "test_scores": [
+          0.6133333333333333,
+          0.75,
+          0.6233333333333333,
+          0.72,
+          0.8333333333333334,
+          0.6533333333333333,
+          0.6133333333333333,
+          0.25,
+          0.86,
+          0.33,
+          0.83,
+          0.5366666666666666,
+          0.53,
+          0.74,
+          0.29,
+          0.42333333333333334,
+          0.6666666666666666,
+          0.4,
+          0.4166666666666667,
+          0.71
+        ]
+      },
+      "svm_rbf": {
+        "test_predictions": [
+          1,
+          1,
+          0,
+          1,
+          1,
+          1,
+          1,
+          0,
+          1,
+          1,
+          0,
+          0,
+          1,
+          1,
+          0,
+          0,
+          1,
+          0,
+          1,
+          0
+        ],
+        "test_truth": [
+          1,
+          0,
+          1,
+          0,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          0,
+          0,
+          1,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0
+        ],
+        "test_scores": [
+          0.5208211845250937,
+          0.5421161926510462,
+          0.6466842801908673,
+          0.4651877291012529,
+          0.45210543994268915,
+          0.40982673891876326,
+          0.43754734680058516,
+          0.6796670159046307,
+          0.5282281425734693,
+          0.544378082674761,
+          0.577375701461648,
+          0.573460060793682,
+          0.5062973497572857,
+          0.4610172345047786,
+          0.6671228721757064,
+          0.6582291108959591,
+          0.3991550772901114,
+          0.5850374688240094,
+          0.4663625753835768,
+          0.5518726305310254
+        ]
+      },
+      "xgboost": {
+        "test_predictions": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          0,
+          1,
+          0,
+          1,
+          0,
+          0,
+          1,
+          0,
+          0,
+          1,
+          1,
+          0,
+          1
+        ],
+        "test_truth": [
+          1,
+          0,
+          1,
+          0,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          0,
+          0,
+          1,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0
+        ],
+        "test_scores": [
+          0.7879416346549988,
+          0.734425961971283,
+          0.8104365468025208,
+          0.9396806359291077,
+          0.9911264777183533,
+          0.9137799739837646,
+          0.85666424036026,
+          0.017887355759739876,
+          0.9080778360366821,
+          0.353913813829422,
+          0.9651603102684021,
+          0.4114719033241272,
+          0.4677927792072296,
+          0.9724480509757996,
+          0.053259607404470444,
+          0.24220289289951324,
+          0.9000767469406128,
+          0.714005708694458,
+          0.12777456641197205,
+          0.6441987156867981
+        ]
+      },
+      "lightgbm": {
+        "test_predictions": [
+          1,
+          0,
+          1,
+          1,
+          1,
+          1,
+          1,
+          0,
+          1,
+          0,
+          1,
+          1,
+          0,
+          1,
+          0,
+          0,
+          1,
+          1,
+          0,
+          0
+        ],
+        "test_truth": [
+          1,
+          0,
+          1,
+          0,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          0,
+          0,
+          1,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0
+        ],
+        "test_scores": [
+          0.6373238745313754,
+          0.36618532753270855,
+          0.6756833054285349,
+          0.8869639267556069,
+          0.9315883409902604,
+          0.7600347197700459,
+          0.6753606208403737,
+          0.2072516387854829,
+          0.5141156570696668,
+          0.4404002878932326,
+          0.7890465422034593,
+          0.5114638269470864,
+          0.4404002878932326,
+          0.9270093816566363,
+          0.4306883751405627,
+          0.45935259864008215,
+          0.7600347197700459,
+          0.5856639543250528,
+          0.39974703460928473,
+          0.374870703909358
+        ]
+      }
+    },
+    "diagnostics": {
+      "best_model_name": "lightgbm",
+      "train_rows": 77,
+      "test_rows": 20,
+      "data_quality_warnings": [
+        "Training sample size is very small for academic performance claims; treat current metrics as smoke-test evidence only.",
+        "Test sample size is too small for stable generalisation claims; prefer a larger held-out test set before reporting benchmark conclusions."
+      ],
+      "confusion_matrix": [
+        [
+          5,
+          4
+        ],
+        [
+          3,
+          8
+        ]
+      ],
+      "labels": [
+        0,
+        1
+      ],
+      "class_distribution_test": {
+        "1": 11,
+        "0": 9
+      }
+    },
+    "best_model_feature_importance": [
+      {
+        "feature_name": "purchase_history",
+        "importance": 233.0
+      },
+      {
+        "feature_name": "age",
+        "importance": 183.0
+      },
+      {
+        "feature_name": "credit_score",
+        "importance": 183.0
+      }
+    ],
+    "summary": {
+      "problem_type": "classification",
+      "task_description": "AutoDS Modelling",
+      "primary_metric": "roc_auc",
+      "resolved_cv_folds": 5,
+      "available_models": [
+        "logistic_regression",
+        "random_forest",
+        "svm_rbf",
+        "xgboost",
+        "lightgbm"
+      ],
+      "candidate_models": [
+        "lightgbm",
+        "xgboost",
+        "random_forest",
+        "svm_rbf",
+        "logistic_regression"
+      ],
+      "best_model_name": "lightgbm",
+      "train_rows": 77,
+      "train_feature_count": 3,
+      "test_rows": 20,
+      "llm_plan_status": "disabled_or_unavailable",
+      "feature_metadata_available": false,
+      "target_distribution": {
+        "1": 43,
+        "0": 34
+      },
+      "test_target_available": true,
+      "limitations": [
+        "Training sample size is very small for academic performance claims; treat current metrics as smoke-test evidence only.",
+        "Test sample size is too small for stable generalisation claims; prefer a larger held-out test set before reporting benchmark conclusions."
+      ]
+    },
+    "metadata": {
+      "config": {
+        "target_column": "target",
+        "problem_type": "classification",
+        "task_description": "AutoDS Modelling",
+        "primary_metric": null,
+        "cv_folds": 5,
+        "random_state": 42,
+        "save_artifacts": true,
+        "output_dir": "D:\\LangChain\\AUTODS_\\autods_pipeline_output\\04_modelling",
+        "use_llm_planner": true,
+        "llm_model": "gpt-4o-mini",
+        "llm_temperature": 0.0,
+        "candidate_model_names": null,
+        "supported_future_problem_families": [
+          "classification",
+          "regression",
+          "unsupervised",
+          "nlp"
+        ]
+      },
+      "llm_plan": {
+        "planner_status": "disabled_or_unavailable",
+        "recommended_models": [],
+        "reason": "LLM is not configured. Falling back to deterministic candidate models."
+      },
+      "available_models": [
+        "logistic_regression",
+        "random_forest",
+        "svm_rbf",
+        "xgboost",
+        "lightgbm"
+      ],
+      "best_model_name": "lightgbm",
+      "resolved_cv_folds": 5,
+      "leaderboard_columns": [
+        "rank",
+        "model_name",
+        "cv_runtime_seconds",
+        "cv_accuracy",
+        "cv_precision",
+        "cv_recall",
+        "cv_f1",
+        "cv_roc_auc",
+        "cv_std_accuracy",
+        "cv_std_precision",
+        "cv_std_recall",
+        "cv_std_f1",
+        "cv_std_roc_auc",
+        "test_accuracy",
+        "test_precision",
+        "test_recall",
+        "test_f1",
+        "test_roc_auc"
+      ],
+      "diagnostics_available": true,
+      "feature_importance_available": true,
+      "upstream_feature_metadata": null
+    },
+    "llm_plan": {
+      "planner_status": "disabled_or_unavailable",
+      "recommended_models": [],
+      "reason": "LLM is not configured. Falling back to deterministic candidate models."
+    }
+  },
+  "evaluation": {
+    "problem_type": "classification",
+    "primary_metric": "roc_auc",
+    "best_model_name": "lightgbm",
+    "benchmark_overview": {
+      "candidate_model_count": 5,
+      "primary_metric": "roc_auc",
+      "top_ranked_model": "lightgbm",
+      "selected_best_model": "lightgbm",
+      "comparison_table": [
+        {
+          "rank": 1,
+          "model_name": "lightgbm",
+          "cv_accuracy": 0.5591666666666667,
+          "cv_precision": 0.6206060606060606,
+          "cv_recall": 0.6555555555555556,
+          "cv_f1": 0.6203842940685045,
+          "cv_roc_auc": 0.6306216931216931,
+          "test_accuracy": 0.65,
+          "test_precision": 0.6666666666666666,
+          "test_recall": 0.7272727272727273,
+          "test_f1": 0.6956521739130435,
+          "test_roc_auc": 0.707070707070707
+        },
+        {
+          "rank": 2,
+          "model_name": "xgboost",
+          "cv_accuracy": 0.6633333333333333,
+          "cv_precision": 0.758939393939394,
+          "cv_recall": 0.6555555555555556,
+          "cv_f1": 0.6783179668628586,
+          "cv_roc_auc": 0.6548941798941799,
+          "test_accuracy": 0.6,
+          "test_precision": 0.6153846153846154,
+          "test_recall": 0.7272727272727273,
+          "test_f1": 0.6666666666666666,
+          "test_roc_auc": 0.6868686868686869
+        },
+        {
+          "rank": 3,
+          "model_name": "random_forest",
+          "cv_accuracy": 0.5875,
+          "cv_precision": 0.6205555555555555,
+          "cv_recall": 0.7027777777777777,
+          "cv_f1": 0.6560371517027864,
+          "cv_roc_auc": 0.6113756613756615,
+          "test_accuracy": 0.55,
+          "test_precision": 0.5714285714285714,
+          "test_recall": 0.7272727272727273,
+          "test_f1": 0.64,
+          "test_roc_auc": 0.595959595959596
+        },
+        {
+          "rank": 4,
+          "model_name": "svm_rbf",
+          "cv_accuracy": 0.5199999999999999,
+          "cv_precision": 0.5878571428571429,
+          "cv_recall": 0.4444444444444445,
+          "cv_f1": 0.5032880844645551,
+          "cv_roc_auc": 0.533068783068783,
+          "test_accuracy": 0.55,
+          "test_precision": 0.5833333333333334,
+          "test_recall": 0.6363636363636364,
+          "test_f1": 0.6086956521739131,
+          "test_roc_auc": 0.4949494949494949
+        },
+        {
+          "rank": 5,
+          "model_name": "logistic_regression",
+          "cv_accuracy": 0.3624999999999999,
+          "cv_precision": 0.4166666666666667,
+          "cv_recall": 0.3472222222222222,
+          "cv_f1": 0.3777310924369748,
+          "cv_roc_auc": 0.3355820105820106,
+          "test_accuracy": 0.4,
+          "test_precision": 0.4285714285714285,
+          "test_recall": 0.2727272727272727,
+          "test_f1": 0.3333333333333333,
+          "test_roc_auc": 0.3939393939393939
+        }
+      ]
+    },
+    "best_model_selection_evidence": {
+      "selected_model": "lightgbm",
+      "selection_metric": "roc_auc",
+      "selection_metric_value": 0.707070707070707,
+      "selection_rank": 1
+    },
+    "best_model_evaluation": {
+      "model_name": "lightgbm",
+      "metrics": {
+        "rank": 1,
+        "model_name": "lightgbm",
+        "cv_runtime_seconds": 0.2252,
+        "cv_accuracy": 0.5591666666666667,
+        "cv_precision": 0.6206060606060606,
+        "cv_recall": 0.6555555555555556,
+        "cv_f1": 0.6203842940685045,
+        "cv_roc_auc": 0.6306216931216931,
+        "cv_std_accuracy": 0.09046177830074606,
+        "cv_std_precision": 0.11282172647635563,
+        "cv_std_recall": 0.13704329315048902,
+        "cv_std_f1": 0.07028594553271808,
+        "cv_std_roc_auc": 0.11505047378014054,
+        "test_accuracy": 0.65,
+        "test_precision": 0.6666666666666666,
+        "test_recall": 0.7272727272727273,
+        "test_f1": 0.6956521739130435,
+        "test_roc_auc": 0.707070707070707
+      },
+      "diagnostics": {
+        "best_model_name": "lightgbm",
+        "train_rows": 77,
+        "test_rows": 20,
+        "data_quality_warnings": [
+          "Training sample size is very small for academic performance claims; treat current metrics as smoke-test evidence only.",
+          "Test sample size is too small for stable generalisation claims; prefer a larger held-out test set before reporting benchmark conclusions."
+        ],
+        "confusion_matrix": [
+          [
+            5,
+            4
+          ],
+          [
+            3,
+            8
+          ]
+        ],
+        "labels": [
+          0,
+          1
+        ],
+        "class_distribution_test": {
+          "1": 11,
+          "0": 9
+        }
+      },
+      "prediction_output_available": true,
+      "prediction_row_count": 20,
+      "prediction_columns": [
+        "test_predictions",
+        "test_truth",
+        "test_scores"
+      ],
+      "feature_importance_available": true,
+      "feature_importance_top_rows": [
+        {
+          "feature_name": "purchase_history",
+          "importance": 233.0
+        },
+        {
+          "feature_name": "age",
+          "importance": 183.0
+        },
+        {
+          "feature_name": "credit_score",
+          "importance": 183.0
+        }
+      ]
+    },
+    "limitations": [
+      "Training sample size is very small for academic performance claims; treat current metrics as smoke-test evidence only.",
+      "Test sample size is too small for stable generalisation claims; prefer a larger held-out test set before reporting benchmark conclusions."
+    ]
+  },
+  "business_context": {
+    "use_case": "Automated Data Science",
+    "industry": "Technology",
+    "target_audience": "Data Science Team",
+    "business_goal": "Automated end-to-end data science pipeline"
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "config": {
+    "target_column": "target",
+    "problem_type": "classification",
+    "task_description": "AutoDS Modelling",
+    "primary_metric": null,
+    "cv_folds": 5,
+    "random_state": 42,
+    "save_artifacts": true,
+    "output_dir": "D:\\LangChain\\AUTODS_\\autods_pipeline_output\\04_modelling",
+    "use_llm_planner": true,
+    "llm_model": "gpt-4o-mini",
+    "llm_temperature": 0.0,
+    "candidate_model_names": null,
+    "supported_future_problem_families": [
+      "classification",
+      "regression",
+      "unsupervised",
+      "nlp"
+    ]
+  },
+  "llm_plan": {
+    "planner_status": "disabled_or_unavailable",
+    "recommended_models": [],
+    "reason": "LLM is not configured. Falling back to deterministic candidate models."
+  },
+  "available_models": [
+    "logistic_regression",
+    "random_forest",
+    "svm_rbf",
+    "xgboost",
+    "lightgbm"
+  ],
+  "best_model_name": "lightgbm",
+  "resolved_cv_folds": 5,
+  "leaderboard_columns": [
+    "rank",
+    "model_name",
+    "cv_runtime_seconds",
+    "cv_accuracy",
+    "cv_precision",
+    "cv_recall",
+    "cv_f1",
+    "cv_roc_auc",
+    "cv_std_accuracy",
+    "cv_std_precision",
+    "cv_std_recall",
+    "cv_std_f1",
+    "cv_std_roc_auc",
+    "test_accuracy",
+    "test_precision",
+    "test_recall",
+    "test_f1",
+    "test_roc_auc"
+  ],
+  "diagnostics_available": true,
+  "feature_importance_available": true,
+  "upstream_feature_metadata": null
+}

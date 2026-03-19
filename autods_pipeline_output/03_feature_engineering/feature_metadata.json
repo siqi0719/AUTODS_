@@ -1,0 +1,104 @@
+{
+  "config": {
+    "target_column": "target",
+    "problem_type": "classification",
+    "task_description": "AutoDS Feature Engineering",
+    "missing_drop_threshold": 0.6,
+    "id_unique_ratio_threshold": 0.95,
+    "text_unique_ratio_threshold": 0.85,
+    "rare_category_threshold": 0.01,
+    "rare_category_label": "__RARE__",
+    "parse_datetime_strings": true,
+    "scale_numeric": true,
+    "drop_high_correlation": true,
+    "correlation_threshold": 0.95,
+    "save_artifacts": true,
+    "output_dir": "D:\\LangChain\\AUTODS_\\autods_pipeline_output\\03_feature_engineering",
+    "random_state": 42,
+    "use_llm_planner": true,
+    "llm_model": "gpt-4.1-mini",
+    "llm_temperature": 0.0
+  },
+  "column_profiles": [
+    {
+      "name": "customer_id",
+      "inferred_type": "id_like",
+      "missing_ratio": 0.0,
+      "nunique": 97,
+      "sample_values": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5"
+      ],
+      "dropped_reason": "id_like_column"
+    },
+    {
+      "name": "age",
+      "inferred_type": "numeric",
+      "missing_ratio": 0.0,
+      "nunique": 46,
+      "sample_values": [
+        "58.0",
+        "48.0",
+        "34.0",
+        "62.0",
+        "27.0"
+      ],
+      "dropped_reason": null
+    },
+    {
+      "name": "income",
+      "inferred_type": "id_like",
+      "missing_ratio": 0.0,
+      "nunique": 97,
+      "sample_values": [
+        "32568",
+        "92592",
+        "97563",
+        "32695",
+        "78190"
+      ],
+      "dropped_reason": "id_like_column"
+    },
+    {
+      "name": "credit_score",
+      "inferred_type": "numeric",
+      "missing_ratio": 0.0,
+      "nunique": 83,
+      "sample_values": [
+        "558",
+        "658",
+        "755",
+        "710",
+        "617"
+      ],
+      "dropped_reason": null
+    },
+    {
+      "name": "purchase_history",
+      "inferred_type": "numeric",
+      "missing_ratio": 0.0,
+      "nunique": 61,
+      "sample_values": [
+        "50",
+        "53",
+        "7",
+        "26",
+        "26"
+      ],
+      "dropped_reason": null
+    }
+  ],
+  "feature_names": [
+    "age",
+    "credit_score",
+    "purchase_history"
+  ],
+  "llm_plan": {
+    "planner_status": "disabled_or_unavailable",
+    "actions": [],
+    "reason": "LLM is not configured. Falling back to rule-based feature engineering."
+  }
+}

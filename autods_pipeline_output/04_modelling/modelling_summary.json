@@ -1,0 +1,35 @@
+{
+  "problem_type": "classification",
+  "task_description": "AutoDS Modelling",
+  "primary_metric": "roc_auc",
+  "resolved_cv_folds": 5,
+  "available_models": [
+    "logistic_regression",
+    "random_forest",
+    "svm_rbf",
+    "xgboost",
+    "lightgbm"
+  ],
+  "candidate_models": [
+    "lightgbm",
+    "xgboost",
+    "random_forest",
+    "svm_rbf",
+    "logistic_regression"
+  ],
+  "best_model_name": "lightgbm",
+  "train_rows": 77,
+  "train_feature_count": 3,
+  "test_rows": 20,
+  "llm_plan_status": "disabled_or_unavailable",
+  "feature_metadata_available": false,
+  "target_distribution": {
+    "1": 43,
+    "0": 34
+  },
+  "test_target_available": true,
+  "limitations": [
+    "Training sample size is very small for academic performance claims; treat current metrics as smoke-test evidence only.",
+    "Test sample size is too small for stable generalisation claims; prefer a larger held-out test set before reporting benchmark conclusions."
+  ]
+}

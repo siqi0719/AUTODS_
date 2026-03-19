@@ -1,0 +1,664 @@
+{
+  "meta": {
+    "agent_name": "AUTODS_DATA_UNDERSTANDING",
+    "run_timestamp_utc": "2026-03-19T12:34:13.367593+00:00",
+    "data_path": "D:\\LangChain\\AUTODS_\\_example_data_temp.csv",
+    "dataset_name": "AutoDS_Dataset",
+    "output_dir": "D:\\LangChain\\AUTODS_\\autods_pipeline_output\\01_understanding",
+    "target_column": "target",
+    "problem_type_config": "classification",
+    "random_state": 42,
+    "shape": {
+      "rows": 100,
+      "columns": 6
+    },
+    "generated_files": [
+      "data_profile.json",
+      "data_quality_report.json",
+      "target_analysis.json",
+      "data_understanding_summary.json",
+      "data_understanding_metadata.json"
+    ],
+    "project_theme": "Real Estate Rental Prediction"
+  },
+  "data_understanding": {
+    "profile": {
+      "dataset_name": "AutoDS_Dataset",
+      "data_path": "_example_data_temp.csv",
+      "shape": {
+        "rows": 100,
+        "columns": 6
+      },
+      "columns": [
+        "customer_id",
+        "age",
+        "income",
+        "credit_score",
+        "purchase_history",
+        "target"
+      ],
+      "dtypes": {
+        "customer_id": "int64",
+        "age": "float64",
+        "income": "int64",
+        "credit_score": "int64",
+        "purchase_history": "int64",
+        "target": "int64"
+      },
+      "feature_types": {
+        "numeric_columns": [
+          "customer_id",
+          "age",
+          "income",
+          "credit_score",
+          "purchase_history",
+          "target"
+        ],
+        "categorical_columns": [],
+        "boolean_columns": [],
+        "datetime_columns": []
+      },
+      "numeric_summary_statistics": {
+        "customer_id": {
+          "count": 100,
+          "mean": 50.5,
+          "std": 29.011491975882016,
+          "min": 1.0,
+          "p25": 25.75,
+          "median": 50.5,
+          "p75": 75.25,
+          "max": 100.0
+        },
+        "age": {
+          "count": 95,
+          "mean": 44.136842105263156,
+          "std": 14.213875844306408,
+          "min": 20.0,
+          "p25": 33.0,
+          "median": 43.0,
+          "p75": 57.5,
+          "max": 69.0
+        },
+        "income": {
+          "count": 100,
+          "mean": 118924.88,
+          "std": 159574.20595436232,
+          "min": 30206.0,
+          "p25": 60421.25,
+          "median": 93689.5,
+          "p75": 123820.25,
+          "max": 999999.0
+        },
+        "credit_score": {
+          "count": 100,
+          "mean": 568.88,
+          "std": 147.23610393864104,
+          "min": 301.0,
+          "p25": 445.25,
+          "median": 555.5,
+          "p75": 700.5,
+          "max": 810.0
+        },
+        "purchase_history": {
+          "count": 100,
+          "mean": 49.39,
+          "std": 28.568505297783698,
+          "min": 1.0,
+          "p25": 24.75,
+          "median": 47.0,
+          "p75": 66.0,
+          "max": 98.0
+        },
+        "target": {
+          "count": 100,
+          "mean": 0.54,
+          "std": 0.5009082659620331,
+          "min": 0.0,
+          "p25": 0.0,
+          "median": 1.0,
+          "p75": 1.0,
+          "max": 1.0
+        }
+      },
+      "categorical_value_preview": {},
+      "memory_usage_bytes": 4932
+    },
+    "quality_report": {
+      "missing_values": {
+        "missing_count_by_column": {
+          "customer_id": 0,
+          "age": 5,
+          "income": 0,
+          "credit_score": 0,
+          "purchase_history": 0,
+          "target": 0
+        },
+        "missing_ratio_by_column": {
+          "customer_id": 0.0,
+          "age": 0.05,
+          "income": 0.0,
+          "credit_score": 0.0,
+          "purchase_history": 0.0,
+          "target": 0.0
+        }
+      },
+      "duplicate_rows": {
+        "count": 0,
+        "ratio": 0.0
+      },
+      "constant_columns": [],
+      "all_missing_columns": [],
+      "high_missing_columns": [],
+      "suspected_identifier_columns": [
+        "customer_id",
+        "income"
+      ],
+      "high_cardinality_columns": [],
+      "numeric_outlier_report": {
+        "customer_id": {
+          "status": "completed",
+          "lower_bound": -48.5,
+          "upper_bound": 149.5,
+          "outlier_count": 0,
+          "outlier_ratio": 0.0
+        },
+        "age": {
+          "status": "completed",
+          "lower_bound": -3.75,
+          "upper_bound": 94.25,
+          "outlier_count": 0,
+          "outlier_ratio": 0.0
+        },
+        "income": {
+          "status": "completed",
+          "lower_bound": -34677.25,
+          "upper_bound": 218918.75,
+          "outlier_count": 3,
+          "outlier_ratio": 0.03
+        },
+        "credit_score": {
+          "status": "completed",
+          "lower_bound": 62.375,
+          "upper_bound": 1083.375,
+          "outlier_count": 0,
+          "outlier_ratio": 0.0
+        },
+        "purchase_history": {
+          "status": "completed",
+          "lower_bound": -37.125,
+          "upper_bound": 127.875,
+          "outlier_count": 0,
+          "outlier_ratio": 0.0
+        },
+        "target": {
+          "status": "completed",
+          "lower_bound": -1.5,
+          "upper_bound": 2.5,
+          "outlier_count": 0,
+          "outlier_ratio": 0.0
+        }
+      },
+      "recommended_actions": {
+        "drop_or_review_constant_columns": [],
+        "drop_or_review_all_missing_columns": [],
+        "review_high_missing_columns": [],
+        "review_identifier_columns_for_leakage": [
+          "customer_id",
+          "income"
+        ],
+        "review_high_cardinality_columns_for_encoding": [],
+        "review_possible_target_leakage_columns": []
+      }
+    },
+    "target_analysis": {
+      "target_column": "target",
+      "problem_type": "classification",
+      "inferred_problem_type": "classification",
+      "missing_count": 0,
+      "missing_ratio": 0.0,
+      "n_unique": 2,
+      "class_distribution": {
+        "1": 54,
+        "0": 46
+      },
+      "imbalance_ratio_max_over_min": 1.173913043478261,
+      "is_binary": true,
+      "recommended_primary_metrics": [
+        "f1",
+        "roc_auc",
+        "precision",
+        "recall"
+      ]
+    }
+  },
+  "data_cleaning": {
+    "metadata": {
+      "agent_name": "DataCleaner",
+      "timestamp": "2026-03-19T23:34:13.379372",
+      "version": "1.0"
+    },
+    "input_data": {
+      "shape": {
+        "rows": 100,
+        "columns": 6
+      },
+      "total_cells": 600
+    },
+    "output_data": {
+      "shape": {
+        "rows": 97,
+        "columns": 6
+      },
+      "total_cells": 582
+    },
+    "cleaning_summary": {
+      "rows_removed": 3,
+      "rows_retained": 97,
+      "rows_removed_percentage": 3.0,
+      "data_retention_percentage": 97.0
+    },
+    "column_classification": {
+      "numeric_columns": [
+        "customer_id",
+        "age",
+        "income",
+        "credit_score",
+        "purchase_history",
+        "target"
+      ],
+      "categorical_columns": [],
+      "special_format_columns": [],
+      "column_type_summary": {
+        "numeric_count": 6,
+        "categorical_count": 0,
+        "special_format_count": 0
+      }
+    },
+    "data_quality_metrics": {
+      "original": {
+        "completeness": 100.0,
+        "duplicates": 0,
+        "null_values": 0,
+        "null_percentage": 0.0
+      },
+      "cleaned": {
+        "completeness": 100.0,
+        "duplicates": 0,
+        "null_values": 0,
+        "null_percentage": 0.0
+      }
+    },
+    "cleaning_operations": {
+      "duplicates_removed": 0,
+      "missing_values_handled": true,
+      "anomalies_removed": "IQR method applied to numeric columns",
+      "special_formats_preserved": []
+    }
+  },
+  "feature_engineering": {
+    "target_column": "target",
+    "problem_type": "classification",
+    "task_description": "AutoDS Feature Engineering",
+    "llm_plan_status": "disabled_or_unavailable",
+    "llm_actions_count": 0,
+    "llm_actions_applied": [],
+    "dropped_columns": {
+      "general_drop": [
+        "customer_id",
+        "income"
+      ],
+      "constant_columns": [],
+      "high_correlation_drop": []
+    },
+    "used_columns": {
+      "numeric": [
+        "age",
+        "credit_score",
+        "purchase_history"
+      ],
+      "categorical": [],
+      "datetime": [],
+      "text": [],
+      "bool_as_numeric": []
+    },
+    "final_feature_count": 3,
+    "metadata": {
+      "config": {
+        "target_column": "target",
+        "problem_type": "classification",
+        "task_description": "AutoDS Feature Engineering",
+        "missing_drop_threshold": 0.6,
+        "id_unique_ratio_threshold": 0.95,
+        "text_unique_ratio_threshold": 0.85,
+        "rare_category_threshold": 0.01,
+        "rare_category_label": "__RARE__",
+        "parse_datetime_strings": true,
+        "scale_numeric": true,
+        "drop_high_correlation": true,
+        "correlation_threshold": 0.95,
+        "save_artifacts": true,
+        "output_dir": "D:\\LangChain\\AUTODS_\\autods_pipeline_output\\03_feature_engineering",
+        "random_state": 42,
+        "use_llm_planner": true,
+        "llm_model": "gpt-4.1-mini",
+        "llm_temperature": 0.0
+      },
+      "column_profiles": [
+        {
+          "name": "customer_id",
+          "inferred_type": "id_like",
+          "missing_ratio": 0.0,
+          "nunique": 97,
+          "sample_values": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5"
+          ],
+          "dropped_reason": "id_like_column"
+        },
+        {
+          "name": "age",
+          "inferred_type": "numeric",
+          "missing_ratio": 0.0,
+          "nunique": 46,
+          "sample_values": [
+            "58.0",
+            "48.0",
+            "34.0",
+            "62.0",
+            "27.0"
+          ],
+          "dropped_reason": null
+        },
+        {
+          "name": "income",
+          "inferred_type": "id_like",
+          "missing_ratio": 0.0,
+          "nunique": 97,
+          "sample_values": [
+            "32568",
+            "92592",
+            "97563",
+            "32695",
+            "78190"
+          ],
+          "dropped_reason": "id_like_column"
+        },
+        {
+          "name": "credit_score",
+          "inferred_type": "numeric",
+          "missing_ratio": 0.0,
+          "nunique": 83,
+          "sample_values": [
+            "558",
+            "658",
+            "755",
+            "710",
+            "617"
+          ],
+          "dropped_reason": null
+        },
+        {
+          "name": "purchase_history",
+          "inferred_type": "numeric",
+          "missing_ratio": 0.0,
+          "nunique": 61,
+          "sample_values": [
+            "50",
+            "53",
+            "7",
+            "26",
+            "26"
+          ],
+          "dropped_reason": null
+        }
+      ],
+      "feature_names": [
+        "age",
+        "credit_score",
+        "purchase_history"
+      ],
+      "llm_plan": {
+        "planner_status": "disabled_or_unavailable",
+        "actions": [],
+        "reason": "LLM is not configured. Falling back to rule-based feature engineering."
+      }
+    }
+  },
+  "modeling": {
+    "best_model_metrics": {
+      "rank": 1,
+      "model_name": "lightgbm",
+      "cv_runtime_seconds": 0.2171,
+      "cv_accuracy": 0.5591666666666667,
+      "cv_precision": 0.6206060606060606,
+      "cv_recall": 0.6555555555555556,
+      "cv_f1": 0.6203842940685045,
+      "cv_roc_auc": 0.6306216931216931,
+      "cv_std_accuracy": 0.09046177830074606,
+      "cv_std_precision": 0.11282172647635563,
+      "cv_std_recall": 0.13704329315048902,
+      "cv_std_f1": 0.07028594553271808,
+      "cv_std_roc_auc": 0.11505047378014054,
+      "test_accuracy": 0.65,
+      "test_precision": 0.6666666666666666,
+      "test_recall": 0.7272727272727273,
+      "test_f1": 0.6956521739130435,
+      "test_roc_auc": 0.707070707070707
+    },
+    "problem_type": "classification",
+    "task_description": "AutoDS Modelling",
+    "primary_metric": "roc_auc",
+    "resolved_cv_folds": 5,
+    "available_models": [
+      "logistic_regression",
+      "random_forest",
+      "svm_rbf",
+      "xgboost",
+      "lightgbm"
+    ],
+    "candidate_models": [
+      "lightgbm",
+      "xgboost",
+      "random_forest",
+      "svm_rbf",
+      "logistic_regression"
+    ],
+    "best_model_name": "lightgbm",
+    "train_rows": 77,
+    "train_feature_count": 3,
+    "test_rows": 20,
+    "llm_plan_status": "disabled_or_unavailable",
+    "feature_metadata_available": false,
+    "target_distribution": {
+      "1": 43,
+      "0": 34
+    },
+    "test_target_available": true,
+    "limitations": [
+      "Training sample size is very small for academic performance claims; treat current metrics as smoke-test evidence only.",
+      "Test sample size is too small for stable generalisation claims; prefer a larger held-out test set before reporting benchmark conclusions."
+    ]
+  },
+  "evaluation": {
+    "problem_type": "classification",
+    "primary_metric": "roc_auc",
+    "best_model_name": "lightgbm",
+    "benchmark_overview": {
+      "candidate_model_count": 5,
+      "primary_metric": "roc_auc",
+      "top_ranked_model": "lightgbm",
+      "selected_best_model": "lightgbm",
+      "comparison_table": [
+        {
+          "rank": 1,
+          "model_name": "lightgbm",
+          "cv_accuracy": 0.5591666666666667,
+          "cv_precision": 0.6206060606060606,
+          "cv_recall": 0.6555555555555556,
+          "cv_f1": 0.6203842940685045,
+          "cv_roc_auc": 0.6306216931216931,
+          "test_accuracy": 0.65,
+          "test_precision": 0.6666666666666666,
+          "test_recall": 0.7272727272727273,
+          "test_f1": 0.6956521739130435,
+          "test_roc_auc": 0.707070707070707
+        },
+        {
+          "rank": 2,
+          "model_name": "xgboost",
+          "cv_accuracy": 0.6633333333333333,
+          "cv_precision": 0.758939393939394,
+          "cv_recall": 0.6555555555555556,
+          "cv_f1": 0.6783179668628586,
+          "cv_roc_auc": 0.6548941798941799,
+          "test_accuracy": 0.6,
+          "test_precision": 0.6153846153846154,
+          "test_recall": 0.7272727272727273,
+          "test_f1": 0.6666666666666666,
+          "test_roc_auc": 0.6868686868686869
+        },
+        {
+          "rank": 3,
+          "model_name": "random_forest",
+          "cv_accuracy": 0.5875,
+          "cv_precision": 0.6205555555555555,
+          "cv_recall": 0.7027777777777777,
+          "cv_f1": 0.6560371517027864,
+          "cv_roc_auc": 0.6113756613756615,
+          "test_accuracy": 0.55,
+          "test_precision": 0.5714285714285714,
+          "test_recall": 0.7272727272727273,
+          "test_f1": 0.64,
+          "test_roc_auc": 0.595959595959596
+        },
+        {
+          "rank": 4,
+          "model_name": "svm_rbf",
+          "cv_accuracy": 0.5199999999999999,
+          "cv_precision": 0.5878571428571429,
+          "cv_recall": 0.4444444444444445,
+          "cv_f1": 0.5032880844645551,
+          "cv_roc_auc": 0.533068783068783,
+          "test_accuracy": 0.55,
+          "test_precision": 0.5833333333333334,
+          "test_recall": 0.6363636363636364,
+          "test_f1": 0.6086956521739131,
+          "test_roc_auc": 0.4949494949494949
+        },
+        {
+          "rank": 5,
+          "model_name": "logistic_regression",
+          "cv_accuracy": 0.3624999999999999,
+          "cv_precision": 0.4166666666666667,
+          "cv_recall": 0.3472222222222222,
+          "cv_f1": 0.3777310924369748,
+          "cv_roc_auc": 0.3355820105820106,
+          "test_accuracy": 0.4,
+          "test_precision": 0.4285714285714285,
+          "test_recall": 0.2727272727272727,
+          "test_f1": 0.3333333333333333,
+          "test_roc_auc": 0.3939393939393939
+        }
+      ]
+    },
+    "best_model_selection_evidence": {
+      "selected_model": "lightgbm",
+      "selection_metric": "roc_auc",
+      "selection_metric_value": 0.707070707070707,
+      "selection_rank": 1
+    },
+    "best_model_evaluation": {
+      "model_name": "lightgbm",
+      "metrics": {
+        "rank": 1,
+        "model_name": "lightgbm",
+        "cv_runtime_seconds": 0.2171,
+        "cv_accuracy": 0.5591666666666667,
+        "cv_precision": 0.6206060606060606,
+        "cv_recall": 0.6555555555555556,
+        "cv_f1": 0.6203842940685045,
+        "cv_roc_auc": 0.6306216931216931,
+        "cv_std_accuracy": 0.09046177830074606,
+        "cv_std_precision": 0.11282172647635563,
+        "cv_std_recall": 0.13704329315048902,
+        "cv_std_f1": 0.07028594553271808,
+        "cv_std_roc_auc": 0.11505047378014054,
+        "test_accuracy": 0.65,
+        "test_precision": 0.6666666666666666,
+        "test_recall": 0.7272727272727273,
+        "test_f1": 0.6956521739130435,
+        "test_roc_auc": 0.707070707070707
+      },
+      "diagnostics": {
+        "best_model_name": "lightgbm",
+        "train_rows": 77,
+        "test_rows": 20,
+        "data_quality_warnings": [
+          "Training sample size is very small for academic performance claims; treat current metrics as smoke-test evidence only.",
+          "Test sample size is too small for stable generalisation claims; prefer a larger held-out test set before reporting benchmark conclusions."
+        ],
+        "confusion_matrix": [
+          [
+            5,
+            4
+          ],
+          [
+            3,
+            8
+          ]
+        ],
+        "labels": [
+          0,
+          1
+        ],
+        "class_distribution_test": {
+          "1": 11,
+          "0": 9
+        }
+      },
+      "prediction_output_available": true,
+      "prediction_row_count": 20,
+      "prediction_columns": [
+        "test_predictions",
+        "test_truth",
+        "test_scores"
+      ],
+      "feature_importance_available": true,
+      "feature_importance_top_rows": [
+        {
+          "feature_name": "purchase_history",
+          "importance": 233.0
+        },
+        {
+          "feature_name": "age",
+          "importance": 183.0
+        },
+        {
+          "feature_name": "credit_score",
+          "importance": 183.0
+        }
+      ]
+    },
+    "limitations": [
+      "Training sample size is very small for academic performance claims; treat current metrics as smoke-test evidence only.",
+      "Test sample size is too small for stable generalisation claims; prefer a larger held-out test set before reporting benchmark conclusions."
+    ]
+  },
+  "business_context": {
+    "use_case": "Rental Price Prediction",
+    "industry": "Real Estate",
+    "target_audience": "Property Management Team",
+    "stakeholders": [
+      "Property Managers",
+      "Investors"
+    ],
+    "business_goal": "Predict rental prices accurately",
+    "project_objective": "Build predictive model for rental pricing",
+    "success_criteria": "Minimize prediction error",
+    "constraints": [],
+    "timeline": "2026-03"
+  }
+}

@@ -1,0 +1,165 @@
+{
+  "problem_type": "classification",
+  "primary_metric": "roc_auc",
+  "best_model_name": "lightgbm",
+  "benchmark_overview": {
+    "candidate_model_count": 5,
+    "primary_metric": "roc_auc",
+    "top_ranked_model": "lightgbm",
+    "selected_best_model": "lightgbm",
+    "comparison_table": [
+      {
+        "rank": 1,
+        "model_name": "lightgbm",
+        "cv_accuracy": 0.5591666666666667,
+        "cv_precision": 0.6206060606060606,
+        "cv_recall": 0.6555555555555556,
+        "cv_f1": 0.6203842940685045,
+        "cv_roc_auc": 0.6306216931216931,
+        "test_accuracy": 0.65,
+        "test_precision": 0.6666666666666666,
+        "test_recall": 0.7272727272727273,
+        "test_f1": 0.6956521739130435,
+        "test_roc_auc": 0.707070707070707
+      },
+      {
+        "rank": 2,
+        "model_name": "xgboost",
+        "cv_accuracy": 0.6633333333333333,
+        "cv_precision": 0.758939393939394,
+        "cv_recall": 0.6555555555555556,
+        "cv_f1": 0.6783179668628586,
+        "cv_roc_auc": 0.6548941798941799,
+        "test_accuracy": 0.6,
+        "test_precision": 0.6153846153846154,
+        "test_recall": 0.7272727272727273,
+        "test_f1": 0.6666666666666666,
+        "test_roc_auc": 0.6868686868686869
+      },
+      {
+        "rank": 3,
+        "model_name": "random_forest",
+        "cv_accuracy": 0.5875,
+        "cv_precision": 0.6205555555555555,
+        "cv_recall": 0.7027777777777777,
+        "cv_f1": 0.6560371517027864,
+        "cv_roc_auc": 0.6113756613756615,
+        "test_accuracy": 0.55,
+        "test_precision": 0.5714285714285714,
+        "test_recall": 0.7272727272727273,
+        "test_f1": 0.64,
+        "test_roc_auc": 0.595959595959596
+      },
+      {
+        "rank": 4,
+        "model_name": "svm_rbf",
+        "cv_accuracy": 0.5199999999999999,
+        "cv_precision": 0.5878571428571429,
+        "cv_recall": 0.4444444444444445,
+        "cv_f1": 0.5032880844645551,
+        "cv_roc_auc": 0.533068783068783,
+        "test_accuracy": 0.55,
+        "test_precision": 0.5833333333333334,
+        "test_recall": 0.6363636363636364,
+        "test_f1": 0.6086956521739131,
+        "test_roc_auc": 0.4949494949494949
+      },
+      {
+        "rank": 5,
+        "model_name": "logistic_regression",
+        "cv_accuracy": 0.3624999999999999,
+        "cv_precision": 0.4166666666666667,
+        "cv_recall": 0.3472222222222222,
+        "cv_f1": 0.3777310924369748,
+        "cv_roc_auc": 0.3355820105820106,
+        "test_accuracy": 0.4,
+        "test_precision": 0.4285714285714285,
+        "test_recall": 0.2727272727272727,
+        "test_f1": 0.3333333333333333,
+        "test_roc_auc": 0.3939393939393939
+      }
+    ]
+  },
+  "best_model_selection_evidence": {
+    "selected_model": "lightgbm",
+    "selection_metric": "roc_auc",
+    "selection_metric_value": 0.707070707070707,
+    "selection_rank": 1
+  },
+  "best_model_evaluation": {
+    "model_name": "lightgbm",
+    "metrics": {
+      "rank": 1,
+      "model_name": "lightgbm",
+      "cv_runtime_seconds": 0.2252,
+      "cv_accuracy": 0.5591666666666667,
+      "cv_precision": 0.6206060606060606,
+      "cv_recall": 0.6555555555555556,
+      "cv_f1": 0.6203842940685045,
+      "cv_roc_auc": 0.6306216931216931,
+      "cv_std_accuracy": 0.09046177830074606,
+      "cv_std_precision": 0.11282172647635563,
+      "cv_std_recall": 0.13704329315048902,
+      "cv_std_f1": 0.07028594553271808,
+      "cv_std_roc_auc": 0.11505047378014054,
+      "test_accuracy": 0.65,
+      "test_precision": 0.6666666666666666,
+      "test_recall": 0.7272727272727273,
+      "test_f1": 0.6956521739130435,
+      "test_roc_auc": 0.707070707070707
+    },
+    "diagnostics": {
+      "best_model_name": "lightgbm",
+      "train_rows": 77,
+      "test_rows": 20,
+      "data_quality_warnings": [
+        "Training sample size is very small for academic performance claims; treat current metrics as smoke-test evidence only.",
+        "Test sample size is too small for stable generalisation claims; prefer a larger held-out test set before reporting benchmark conclusions."
+      ],
+      "confusion_matrix": [
+        [
+          5,
+          4
+        ],
+        [
+          3,
+          8
+        ]
+      ],
+      "labels": [
+        0,
+        1
+      ],
+      "class_distribution_test": {
+        "1": 11,
+        "0": 9
+      }
+    },
+    "prediction_output_available": true,
+    "prediction_row_count": 20,
+    "prediction_columns": [
+      "test_predictions",
+      "test_truth",
+      "test_scores"
+    ],
+    "feature_importance_available": true,
+    "feature_importance_top_rows": [
+      {
+        "feature_name": "purchase_history",
+        "importance": 233.0
+      },
+      {
+        "feature_name": "age",
+        "importance": 183.0
+      },
+      {
+        "feature_name": "credit_score",
+        "importance": 183.0
+      }
+    ]
+  },
+  "limitations": [
+    "Training sample size is very small for academic performance claims; treat current metrics as smoke-test evidence only.",
+    "Test sample size is too small for stable generalisation claims; prefer a larger held-out test set before reporting benchmark conclusions."
+  ]
+}

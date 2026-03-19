@@ -1,0 +1,28 @@
+{
+  "target_column": "target",
+  "problem_type": "classification",
+  "task_description": "AutoDS Feature Engineering",
+  "llm_plan_status": "disabled_or_unavailable",
+  "llm_actions_count": 0,
+  "llm_actions_applied": [],
+  "dropped_columns": {
+    "general_drop": [
+      "customer_id",
+      "income"
+    ],
+    "constant_columns": [],
+    "high_correlation_drop": []
+  },
+  "used_columns": {
+    "numeric": [
+      "age",
+      "credit_score",
+      "purchase_history"
+    ],
+    "categorical": [],
+    "datetime": [],
+    "text": [],
+    "bool_as_numeric": []
+  },
+  "final_feature_count": 3
+}

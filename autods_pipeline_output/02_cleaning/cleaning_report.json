@@ -1,0 +1,64 @@
+{
+  "metadata": {
+    "agent_name": "DataCleaner",
+    "timestamp": "2026-03-20T00:07:43.209300",
+    "version": "1.0"
+  },
+  "input_data": {
+    "shape": {
+      "rows": 100,
+      "columns": 6
+    },
+    "total_cells": 600
+  },
+  "output_data": {
+    "shape": {
+      "rows": 97,
+      "columns": 6
+    },
+    "total_cells": 582
+  },
+  "cleaning_summary": {
+    "rows_removed": 3,
+    "rows_retained": 97,
+    "rows_removed_percentage": 3.0,
+    "data_retention_percentage": 97.0
+  },
+  "column_classification": {
+    "numeric_columns": [
+      "customer_id",
+      "age",
+      "income",
+      "credit_score",
+      "purchase_history",
+      "target"
+    ],
+    "categorical_columns": [],
+    "special_format_columns": [],
+    "column_type_summary": {
+      "numeric_count": 6,
+      "categorical_count": 0,
+      "special_format_count": 0
+    }
+  },
+  "data_quality_metrics": {
+    "original": {
+      "completeness": 100.0,
+      "duplicates": 0,
+      "null_values": 0,
+      "null_percentage": 0.0
+    },
+    "cleaned": {
+      "completeness": 100.0,
+      "duplicates": 0,
+      "null_values": 0,
+      "null_percentage": 0.0
+    }
+  },
+  "cleaning_operations": {
+    "duplicates_removed": 0,
+    "missing_values_handled": true,
+    "anomalies_removed": "IQR method applied to numeric columns",
+    "special_formats_preserved": []
+  }
+}

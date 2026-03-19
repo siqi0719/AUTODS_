@@ -1,0 +1,101 @@
+{
+  "dataset_name": "AutoDS_Dataset",
+  "data_path": "_example_data_temp.csv",
+  "shape": {
+    "rows": 100,
+    "columns": 6
+  },
+  "columns": [
+    "customer_id",
+    "age",
+    "income",
+    "credit_score",
+    "purchase_history",
+    "target"
+  ],
+  "dtypes": {
+    "customer_id": "int64",
+    "age": "float64",
+    "income": "int64",
+    "credit_score": "int64",
+    "purchase_history": "int64",
+    "target": "int64"
+  },
+  "feature_types": {
+    "numeric_columns": [
+      "customer_id",
+      "age",
+      "income",
+      "credit_score",
+      "purchase_history",
+      "target"
+    ],
+    "categorical_columns": [],
+    "boolean_columns": [],
+    "datetime_columns": []
+  },
+  "numeric_summary_statistics": {
+    "customer_id": {
+      "count": 100,
+      "mean": 50.5,
+      "std": 29.011491975882016,
+      "min": 1.0,
+      "p25": 25.75,
+      "median": 50.5,
+      "p75": 75.25,
+      "max": 100.0
+    },
+    "age": {
+      "count": 95,
+      "mean": 44.136842105263156,
+      "std": 14.213875844306408,
+      "min": 20.0,
+      "p25": 33.0,
+      "median": 43.0,
+      "p75": 57.5,
+      "max": 69.0
+    },
+    "income": {
+      "count": 100,
+      "mean": 118924.88,
+      "std": 159574.20595436232,
+      "min": 30206.0,
+      "p25": 60421.25,
+      "median": 93689.5,
+      "p75": 123820.25,
+      "max": 999999.0
+    },
+    "credit_score": {
+      "count": 100,
+      "mean": 568.88,
+      "std": 147.23610393864104,
+      "min": 301.0,
+      "p25": 445.25,
+      "median": 555.5,
+      "p75": 700.5,
+      "max": 810.0
+    },
+    "purchase_history": {
+      "count": 100,
+      "mean": 49.39,
+      "std": 28.568505297783698,
+      "min": 1.0,
+      "p25": 24.75,
+      "median": 47.0,
+      "p75": 66.0,
+      "max": 98.0
+    },
+    "target": {
+      "count": 100,
+      "mean": 0.54,
+      "std": 0.5009082659620331,
+      "min": 0.0,
+      "p25": 0.0,
+      "median": 1.0,
+      "p75": 1.0,
+      "max": 1.0
+    }
+  },
+  "categorical_value_preview": {},
+  "memory_usage_bytes": 4932
+}

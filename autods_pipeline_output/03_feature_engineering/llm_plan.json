@@ -1,0 +1,5 @@
+{
+  "planner_status": "disabled_or_unavailable",
+  "actions": [],
+  "reason": "LLM is not configured. Falling back to rule-based feature engineering."
+}

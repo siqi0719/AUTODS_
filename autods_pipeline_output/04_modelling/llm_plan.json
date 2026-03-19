@@ -1,0 +1,5 @@
+{
+  "planner_status": "disabled_or_unavailable",
+  "recommended_models": [],
+  "reason": "LLM is not configured. Falling back to deterministic candidate models."
+}
