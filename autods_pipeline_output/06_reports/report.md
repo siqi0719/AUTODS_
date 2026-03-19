@@ -1,223 +1,224 @@
-# 数据科学项目报告
+# Data Science Project Report
 
-## 技术报告
+## Technical Report
 
-# 技术报告
+# Technical Report
 
-生成时间: 2026-03-20 00:07:48
+Generated: 2026-03-20 09:00:04
 
-## 1. 项目概述
+## 1. Project Overview
 
-- **项目名称**: AutoDS Pipeline
-- **数据集**: Processed Dataset
-- **问题类型**: 分类
+- **Project Name**: AutoDS Pipeline
+- **Dataset**: Processed Dataset
+- **Problem Type**: Classification
 
-## 2. 数据分析
+## 2. Data Analysis
 
-### 原始数据
-- **样本数**: 未知
-- **特征数**: 未知
-- **缺失值**: 未知
+### Raw Data
+- **Total Samples**: Unknown
+- **Feature Count**: Unknown
+- **Missing Values**: Unknown
 
-### 目标变量
-- **类型**: 二分类
-- **分布**: 未知
+### Target Variable
+- **Type**: Binary Classification
+- **Distribution**: Unknown
 
-## 3. 数据清洁
+## 3. Data Cleaning
 
-### 清洁过程
-- **原始行数**: 100
-- **清洁后行数**: 97
-- **移除行数**: 3
-- **数据保留率**: 97%
+### Cleaning Process
+- **Original Rows**: 100
+- **Cleaned Rows**: 97
+- **Rows Removed**: 3
+- **Data Retention Rate**: 97%
 
-### 异常值处理
-- 移除异常值: 3 行
-- 缺失值处理: 中位数填充
+### Outlier Treatment
+- Outliers Removed: 3 rows
+- Missing Value Treatment: Median imputation
 
-## 4. 特征工程
+## 4. Feature Engineering
 
-### 特征统计
-- **工程化特征数**: 3
-- **训练集特征**: 3
-- **测试集特征**: 3
+### Feature Statistics
+- **Engineered Features**: 3
+- **Training Set Features**: 3
+- **Test Set Features**: 3
 
-### 训练/测试分割
-- **训练集大小**: 77 样本
-- **测试集大小**: 20 样本
-- **分割比例**: 80/20
+### Train/Test Split
+- **Training Set Size**: 77 samples
+- **Test Set Size**: 20 samples
+- **Split Ratio**: 80/20
 
-## 5. 模型建立
+## 5. Model Building
 
-### 模型配置
-- **最佳模型**: Pipeline(steps=[('imputer', SimpleImputer(strategy='median')),
+### Model Configuration
+- **Best Model**: Pipeline(steps=[('imputer', SimpleImputer(strategy='median')),
                 ('model',
                  LGBMClassifier(learning_rate=0.05, n_estimators=300,
                                 random_state=42, verbose=-1))])
-- **训练的模型数**: 5
+- **Number of Models Trained**: 5
 
-### 模型特性
-- 使用梯度增强决策树
-- 自动超参数优化
-- 交叉验证评估
+### Model Characteristics
+- Uses Gradient Boosting Decision Trees
+- Automatic hyperparameter optimization
+- Cross-validation evaluation
 
-## 6. 模型评估
+## 6. Model Evaluation
 
-### 性能指标
-- **主要指标**: roc_auc
-- **最佳模型**: LightGBM
-- **候选模型数**: 5
+### Performance Metrics
+- **Primary Metric**: roc_auc
+- **Best Model**: LightGBM
+- **Number of Candidate Models**: 5
 
-### 模型选择标准
-- 基于主要指标（ROC-AUC）选择最佳模型
-- 考虑过拟合风险
-- 平衡模型复杂度和性能
+### Model Selection Criteria
+- Selection based on primary metric (ROC-AUC)
+- Consideration of overfitting risk
+- Balance between model complexity and performance
 
-## 7. 结论和建议
+## 7. Conclusions and Recommendations
 
-### 主要发现
-1. 数据质量良好，97% 的数据保留率
-2. 特征工程有效地减少了特征维度
-3. LightGBM 模型在该数据集上性能最优
+### Key Findings
+1. Good data quality with 97% data retention rate
+2. Feature engineering effectively reduced feature dimensionality
+3. LightGBM model performs optimally on this dataset
 
-### 建议
-1. **模型部署**: 该模型可以部署到生产环境
-2. **监控**: 持续监控模型性能和数据分布变化
-3. **改进方向**: 
-   - 收集更多数据提高模型泛化性能
-   - 尝试集成方法进一步提升性能
-   - 定期重新训练模型
+### Recommendations
+1. **Model Deployment**: The model can be deployed to production environment
+2. **Monitoring**: Continuously monitor model performance and data distribution changes
+3. **Improvement Directions**:
+   - Collect more data to improve model generalization
+   - Try ensemble methods to further improve performance
+   - Periodically retrain model
 
-## 8. 技术实现细节
+## 8. Technical Implementation Details
 
-### 数据处理
-- 异常值：使用 IQR 方法检测和移除
-- 缺失值：使用中位数填充
-- 特征缩放：标准化处理
+### Data Processing
+- Outliers: Detected and removed using IQR method
+- Missing Values: Treated with median imputation
+- Feature Scaling: Standardization applied
 
-### 模型算法
-- 基础模型：LightGBM, XGBoost, Random Forest
-- 交叉验证：5 折交叉验证
-- 评估指标：ROC-AUC, Accuracy, F1-Score
-
----
-
-**报告生成时间**: 2026-03-20T00:07:48.463097
-
+### Model Algorithms
+- Base Models: LightGBM, XGBoost, Random Forest
+- Cross-Validation: 5-fold cross-validation
+- Evaluation Metrics: ROC-AUC, Accuracy, F1-Score
 
 ---
 
-## 业务报告
+**Report Generation Time**: 2026-03-20T09:00:04.673550
 
-# 业务报告
 
-生成时间: 2026-03-20 00:07:48
+---
 
-## 执行总结
+## Business Report
 
-本报告总结了端到端数据科学项目的成果，包括数据分析、清洁、特征工程、建模和评估。
+# Business Report
 
-### 项目成果
-- ✅ 数据成功清洁和处理
-- ✅ 特征工程完成，共生成 3 个特征
-- ✅ 模型训练完成，最佳模型为 Pipeline(steps=[('imputer', SimpleImputer(strategy='median')),
+Generated: 2026-03-20 09:00:04
+
+## Executive Summary
+
+This report summarizes the outcomes of an end-to-end data science project, including data analysis, cleaning, feature engineering, modeling, and evaluation.
+
+### Project Achievements
+- ✅ Data successfully cleaned and processed
+- ✅ Feature engineering completed with 3 engineered features
+- ✅ Model training completed with Pipeline(steps=[('imputer', SimpleImputer(strategy='median')),
                 ('model',
                  LGBMClassifier(learning_rate=0.05, n_estimators=300,
-                                random_state=42, verbose=-1))])
-- ✅ 模型性能良好，roc_auc 指标优异
+                                random_state=42, verbose=-1))]) as the best model
+- ✅ Model performance is good with excellent roc_auc score
 
-## 项目背景
+## Project Background
 
-**业务目标**: Automated end-to-end data science pipeline
+**Business Objective**: Automated end-to-end data science pipeline
 
-**关键问题**: Automated Data Science
+**Key Business Problem**: Automated Data Science
 
-**目标受众**: Data Science Team
+**Target Audience**: Data Science Team
 
-## 关键发现
+## Key Findings
 
-### 数据质量
-- 原始数据中存在异常值，已成功识别和处理
-- 数据保留率达到 97%，数据质量良好
-- 无严重的数据质量问题
+### Data Quality
+- Anomalous values in raw data have been successfully identified and treated
+- Data retention rate reaches 97%, indicating good data quality
+- No critical data quality issues
 
-### 预测能力
-- 构建的模型具有良好的预测能力
-- roc_auc 指标表现优异
-- 模型在测试集上的表现稳定
+### Predictive Capability
+- The constructed model demonstrates good predictive capability
+- roc_auc metric shows excellent performance
+- Model performance on test set is stable and reliable
 
-### 商业价值
-- 该模型可以用于实际业务场景
-- 自动化预测可以提高决策效率
-- 预计可以为业务带来显著的价值
+### Business Value
+- The model can be applied to real business scenarios
+- Automated prediction can improve decision-making efficiency
+- Expected to bring significant value to the business
 
-## 建议行动
+## Recommended Actions
 
-### 短期行动（1-2 周）
-1. **模型验证**: 由领域专家对模型进行业务逻辑验证
-2. **试点部署**: 在小范围内进行模型试点
-3. **准备文档**: 编制模型使用文档和维护指南
+### Short-term Actions (1-2 weeks)
+1. **Model Validation**: Have domain experts validate the model's business logic
+2. **Pilot Deployment**: Conduct pilot testing in limited scope
+3. **Documentation**: Prepare model usage and maintenance documentation
 
-### 中期行动（1 个月）
-1. **生产部署**: 将模型部署到生产环境
-2. **监控设置**: 建立模型性能监控体系
-3. **用户培训**: 对使用人员进行培训
+### Mid-term Actions (1 month)
+1. **Production Deployment**: Deploy model to production environment
+2. **Monitoring Setup**: Establish model performance monitoring system
+3. **User Training**: Train users on model usage
 
-### 长期行动（持续）
-1. **性能监控**: 持续监控模型性能和数据分布
-2. **定期更新**: 根据新数据定期重新训练模型
-3. **反馈收集**: 收集用户反馈进行模型优化
+### Long-term Actions (Ongoing)
+1. **Performance Monitoring**: Continuously monitor model performance and data distribution
+2. **Regular Updates**: Periodically retrain model with new data
+3. **Feedback Collection**: Collect user feedback for model optimization
 
-## 预期效益
+## Expected Benefits
 
-### 定量效益
-- 自动化处理率: 提高 XX%
-- 预测准确率: roc_auc
-- 处理成本: 降低 XX%
+### Quantitative Benefits
+- Automation Rate: Increased by XX%
+- Prediction Accuracy: roc_auc
+- Processing Cost: Reduced by XX%
 
-### 定性效益
-- 提高决策效率
-- 减少人工工作量
-- 改进业务流程
+### Qualitative Benefits
+- Improved decision-making efficiency
+- Reduced manual work effort
+- Enhanced business processes
 
-## 技术架构
+## Technical Architecture
 
-### 数据流向
+### Data Flow
 ```
-原始数据 → 数据清洁 → 特征工程 → 模型训练 → 模型评估 → 模型部署
+Raw Data → Data Cleaning → Feature Engineering → Model Training → 
+Model Evaluation → Model Deployment
 ```
 
-### 关键组件
-- 数据处理层：数据清洁和特征工程
-- 建模层：多种算法对比和选择
-- 评估层：性能指标评估
-- 部署层：模型上线和监控
+### Key Components
+- Data Processing Layer: Data cleaning and feature engineering
+- Modeling Layer: Multiple algorithm comparison and selection
+- Evaluation Layer: Performance metrics assessment
+- Deployment Layer: Model deployment and monitoring
 
-## 风险评估
+## Risk Assessment
 
-### 低风险
-- 数据质量良好
-- 模型性能稳定
+### Low Risk
+- Good data quality
+- Stable model performance
 
-### 中风险
-- 数据分布可能变化
-- 需要定期监控和更新
+### Medium Risk
+- Potential data distribution changes
+- Requires regular monitoring and updates
 
-### 缓解措施
-- 建立数据质量监控
-- 定期模型性能评估
-- 准备应急预案
+### Risk Mitigation Measures
+- Establish data quality monitoring
+- Conduct regular model performance evaluation
+- Prepare contingency plans
 
-## 投资回报率 (ROI)
+## Return on Investment (ROI)
 
-### 成本投入
-- 开发时间: XX 人天
-- 基础设施: XX 元
+### Cost Investment
+- Development Time: XX person-days
+- Infrastructure: XX currency units
 
-### 预期收益
-- 年度效益: XX 元
-- 投资回报周期: XX 月
+### Expected Returns
+- Annual Benefits: XX currency units
+- ROI Payback Period: XX months
 
 ---
 
-**报告生成时间**: 2026-03-20T00:07:48.463097
+**Report Generation Time**: 2026-03-20T09:00:04.673550

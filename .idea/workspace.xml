@@ -4,7 +4,23 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6ac1f931-5d24-4677-805f-d2df543f80f1" name="更改" comment="" />
+    <list default="true" id="6ac1f931-5d24-4677-805f-d2df543f80f1" name="更改" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/autods_pipeline_output/01_understanding/data_understanding_metadata.json" beforeDir="false" afterPath="$PROJECT_DIR$/autods_pipeline_output/01_understanding/data_understanding_metadata.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/autods_pipeline_output/02_cleaning/cleaning_report.json" beforeDir="false" afterPath="$PROJECT_DIR$/autods_pipeline_output/02_cleaning/cleaning_report.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/autods_pipeline_output/04_modelling/best_model_metrics.json" beforeDir="false" afterPath="$PROJECT_DIR$/autods_pipeline_output/04_modelling/best_model_metrics.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/autods_pipeline_output/04_modelling/leaderboard.csv" beforeDir="false" afterPath="$PROJECT_DIR$/autods_pipeline_output/04_modelling/leaderboard.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/autods_pipeline_output/05_evaluation/evaluation_comparison_table.csv" beforeDir="false" afterPath="$PROJECT_DIR$/autods_pipeline_output/05_evaluation/evaluation_comparison_table.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/autods_pipeline_output/05_evaluation/evaluation_summary.json" beforeDir="false" afterPath="$PROJECT_DIR$/autods_pipeline_output/05_evaluation/evaluation_summary.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/autods_pipeline_output/06_reports/pipeline_report_input.json" beforeDir="false" afterPath="$PROJECT_DIR$/autods_pipeline_output/06_reports/pipeline_report_input.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/autods_pipeline_output/06_reports/report.json" beforeDir="false" afterPath="$PROJECT_DIR$/autods_pipeline_output/06_reports/report.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/autods_pipeline_output/06_reports/report.md" beforeDir="false" afterPath="$PROJECT_DIR$/autods_pipeline_output/06_reports/report.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/multi_agent_report_generator_standalone.py" beforeDir="false" afterPath="$PROJECT_DIR$/multi_agent_report_generator_standalone.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/outputs/.gitkeep" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/outputs/cleaned_data.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/outputs/cleaning_report.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/run.py" beforeDir="false" afterPath="$PROJECT_DIR$/run.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -42,7 +58,7 @@
     &quot;Python.run_no_langchain.executor&quot;: &quot;Run&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
     &quot;last_opened_file_path&quot;: &quot;D:/LangChain/AUTODS_&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
@@ -78,6 +94,11 @@
       <workItem from="1773901483284" duration="3453000" />
       <workItem from="1773923586138" duration="2135000" />
       <workItem from="1773925739372" duration="235000" />
+      <workItem from="1773926782275" duration="8000" />
+      <workItem from="1773927129343" duration="7000" />
+      <workItem from="1773955322762" duration="55000" />
+      <workItem from="1773956096986" duration="355000" />
+      <workItem from="1773956459784" duration="1198000" />
     </task>
     <servers />
   </component>
@@ -85,16 +106,18 @@
     <option name="version" value="3" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/main_py$multi_agent_report_generator.coverage" NAME="multi_agent_report_generator 覆盖结果" MODIFIED="1773903392554" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/AUTODS_CLEANING$main.coverage" NAME="main 覆盖结果" MODIFIED="1773898222820" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/run1_py$run3.coverage" NAME="run3 覆盖结果" MODIFIED="1773925662659" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/main_py$fix_langchain_auto.coverage" NAME="fix_langchain_auto 覆盖结果" MODIFIED="1773903338827" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/run1_py$run_no_langchain.coverage" NAME="run_no_langchain 覆盖结果" MODIFIED="1773925300266" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/run1_py$generate_report_json.coverage" NAME="generate_report_json 覆盖结果" MODIFIED="1773923725575" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/run1_py$run2.coverage" NAME="run2 覆盖结果" MODIFIED="1773924265730" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/multi_agent_report_generator_standalone_py$run.coverage" NAME="run 覆盖结果" MODIFIED="1773956382548" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/pipeline_report_input_json$run.coverage" NAME="run 覆盖结果" MODIFIED="1773957594636" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/main_py$multi_agent_report_generator.coverage" NAME="multi_agent_report_generator 覆盖结果" MODIFIED="1773903392554" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/main_py$run.coverage" NAME="run 覆盖结果" MODIFIED="1773921771047" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/main_py$generate_report_json.coverage" NAME="generate_report_json 覆盖结果" MODIFIED="1773921593024" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/run1_py$run1.coverage" NAME="run1 覆盖结果" MODIFIED="1773924673239" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/run1_py$run_no_langchain.coverage" NAME="run_no_langchain 覆盖结果" MODIFIED="1773925300266" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/run1_py$multi_agent_report_generator.coverage" NAME="multi_agent_report_generator 覆盖结果" MODIFIED="1773923788389" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/run1_py$generate_report_json.coverage" NAME="generate_report_json 覆盖结果" MODIFIED="1773923725575" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/run1_py$run2.coverage" NAME="run2 覆盖结果" MODIFIED="1773924265730" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

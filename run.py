@@ -7,7 +7,7 @@ import sys
 import os
 
 # ============================================================================
-# 第 0 步：clean old module
+# step 0：cleaning old module
 # ============================================================================
 
 print("\n[*] old module removing...")
@@ -33,7 +33,7 @@ from pathlib import Path
 
 
 # ============================================================================
-# step 1: generate sample dataset
+# step 1: generating sample dataset
 # ============================================================================
 
 print("📊 step 1: generate sample dataset...")
