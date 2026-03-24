@@ -93,7 +93,7 @@ config.random_state = 42
 print(f"✓ finished: {config.data_path} | target: {config.target_column}\n")
 
 # ============================================================================
-# 第 4 步：running Pipeline
+# step 4：running Pipeline
 # ============================================================================
 
 print("="*80)

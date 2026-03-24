@@ -2,7 +2,7 @@
   "meta": {
     "project_name": "AutoDS Pipeline",
     "dataset_name": "Processed Dataset",
-    "timestamp": "2026-03-20 09:00:04.645865"
+    "timestamp": "2026-03-24 16:06:16.252774"
   },
   "data_understanding": {
     "status": "success",
@@ -52,7 +52,7 @@
       {
         "rank": 1,
         "model_name": "lightgbm",
-        "cv_runtime_seconds": 0.3116,
+        "cv_runtime_seconds": 0.2557,
         "cv_accuracy": 0.5591666666666667,
         "cv_precision": 0.6206060606060606,
         "cv_recall": 0.6555555555555556,
@@ -72,7 +72,7 @@
       {
         "rank": 2,
         "model_name": "xgboost",
-        "cv_runtime_seconds": 2.4802,
+        "cv_runtime_seconds": 1.2732,
         "cv_accuracy": 0.6633333333333333,
         "cv_precision": 0.758939393939394,
         "cv_recall": 0.6555555555555556,
@@ -92,7 +92,7 @@
       {
         "rank": 3,
         "model_name": "random_forest",
-        "cv_runtime_seconds": 1.8256,
+        "cv_runtime_seconds": 1.5681,
         "cv_accuracy": 0.5875,
         "cv_precision": 0.6205555555555555,
         "cv_recall": 0.7027777777777777,
@@ -112,7 +112,7 @@
       {
         "rank": 4,
         "model_name": "svm_rbf",
-        "cv_runtime_seconds": 0.0586,
+        "cv_runtime_seconds": 0.0528,
         "cv_accuracy": 0.5199999999999999,
         "cv_precision": 0.5878571428571429,
         "cv_recall": 0.4444444444444445,
@@ -132,7 +132,7 @@
       {
         "rank": 5,
         "model_name": "logistic_regression",
-        "cv_runtime_seconds": 0.1682,
+        "cv_runtime_seconds": 0.0963,
         "cv_accuracy": 0.36249999999999993,
         "cv_precision": 0.4166666666666667,
         "cv_recall": 0.3472222222222222,
@@ -155,7 +155,7 @@
     "best_model_metrics": {
       "rank": 1,
       "model_name": "lightgbm",
-      "cv_runtime_seconds": 0.3116,
+      "cv_runtime_seconds": 0.2557,
       "cv_accuracy": 0.5591666666666667,
       "cv_precision": 0.6206060606060606,
       "cv_recall": 0.6555555555555556,
@@ -748,7 +748,7 @@
       "metrics": {
         "rank": 1,
         "model_name": "lightgbm",
-        "cv_runtime_seconds": 0.3116,
+        "cv_runtime_seconds": 0.2557,
         "cv_accuracy": 0.5591666666666667,
         "cv_precision": 0.6206060606060606,
         "cv_recall": 0.6555555555555556,

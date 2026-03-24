@@ -4,12 +4,12 @@
 
 # Technical Report
 
-Generated: 2026-03-24 16:06:16
+Generated: 2026-03-24 15:26:29
 
 ## 1. Project Overview
 
-- **Project Name**: AutoDS Pipeline
-- **Dataset**: Processed Dataset
+- **Project Name**: Data Science Project
+- **Dataset**: AutoDS_Dataset
 - **Problem Type**: Classification
 
 ## 2. Data Analysis
@@ -50,10 +50,7 @@ Generated: 2026-03-24 16:06:16
 ## 5. Model Building
 
 ### Model Configuration
-- **Best Model**: Pipeline(steps=[('imputer', SimpleImputer(strategy='median')),
-                ('model',
-                 LGBMClassifier(learning_rate=0.05, n_estimators=300,
-                                random_state=42, verbose=-1))])
+- **Best Model**: LightGBM
 - **Number of Models Trained**: 5
 
 ### Model Characteristics
@@ -102,7 +99,7 @@ Generated: 2026-03-24 16:06:16
 
 ---
 
-**Report Generation Time**: 2026-03-24T16:06:16.283774
+**Report Generation Time**: 2026-03-24T15:26:29.880322
 
 
 ---
@@ -111,7 +108,7 @@ Generated: 2026-03-24 16:06:16
 
 # Business Report
 
-Generated: 2026-03-24 16:06:16
+Generated: 2026-03-24 15:26:29
 
 ## Executive Summary
 
@@ -120,19 +117,16 @@ This report summarizes the outcomes of an end-to-end data science project, inclu
 ### Project Achievements
 - ✅ Data successfully cleaned and processed
 - ✅ Feature engineering completed with 3 engineered features
-- ✅ Model training completed with Pipeline(steps=[('imputer', SimpleImputer(strategy='median')),
-                ('model',
-                 LGBMClassifier(learning_rate=0.05, n_estimators=300,
-                                random_state=42, verbose=-1))]) as the best model
+- ✅ Model training completed with LightGBM as the best model
 - ✅ Model performance is good with excellent roc_auc score
 
 ## Project Background
 
-**Business Objective**: Automated end-to-end data science pipeline
+**Business Objective**: Predict rental prices accurately
 
-**Key Business Problem**: Automated Data Science
+**Key Business Problem**: Rental Price Prediction
 
-**Target Audience**: Data Science Team
+**Target Audience**: Property Management Team
 
 ## Key Findings
 
@@ -221,4 +215,4 @@ Model Evaluation → Model Deployment
 
 ---
 
-**Report Generation Time**: 2026-03-24T16:06:16.283774
+**Report Generation Time**: 2026-03-24T15:26:29.880322
