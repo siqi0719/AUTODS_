@@ -2,7 +2,7 @@
   "config": {
     "target_column": "target",
     "problem_type": "classification",
-    "task_description": "AutoDS Feature Engineering",
+    "task_description": "AutoDS automated feature engineering",
     "missing_drop_threshold": 0.6,
     "id_unique_ratio_threshold": 0.95,
     "text_unique_ratio_threshold": 0.85,
@@ -15,7 +15,7 @@
     "save_artifacts": true,
     "output_dir": "D:\\LangChain\\AUTODS_\\autods_pipeline_output\\03_feature_engineering",
     "random_state": 42,
-    "use_llm_planner": true,
+    "use_llm_planner": false,
     "llm_model": "gpt-4.1-mini",
     "llm_temperature": 0.0
   },
@@ -96,9 +96,5 @@
     "credit_score",
     "purchase_history"
   ],
-  "llm_plan": {
-    "planner_status": "disabled_or_unavailable",
-    "actions": [],
-    "reason": "LLM is not configured. Falling back to rule-based feature engineering."
-  }
+  "llm_plan": {}
 }

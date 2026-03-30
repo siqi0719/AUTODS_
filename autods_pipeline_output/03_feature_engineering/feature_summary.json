@@ -1,8 +1,8 @@
 {
   "target_column": "target",
   "problem_type": "classification",
-  "task_description": "AutoDS Feature Engineering",
-  "llm_plan_status": "disabled_or_unavailable",
+  "task_description": "AutoDS automated feature engineering",
+  "llm_plan_status": "not_used",
   "llm_actions_count": 0,
   "llm_actions_applied": [],
   "dropped_columns": {

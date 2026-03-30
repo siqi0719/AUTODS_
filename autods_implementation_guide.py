@@ -20,7 +20,7 @@ from typing import Any
 
 class PipelineConfig:
     """Configuration for the AutoDS Pipeline"""
-    
+
     def __init__(self):
         self.project_root = Path.cwd()
         self.data_path = None
@@ -28,9 +28,14 @@ class PipelineConfig:
         self.problem_type = "classification"
         self.random_state = 42
         self.output_base_dir = self.project_root / "autods_pipeline_output"
-        
+
+        # Planner settings
+        self.business_description = ""   # natural-language task description
+        self.use_planner = True          # set False to skip Stage 0
+
         # Stage output directories
         self.stage_dirs = {
+            0: self.output_base_dir / "00_planning",
             1: self.output_base_dir / "01_understanding",
             2: self.output_base_dir / "02_cleaning",
             3: self.output_base_dir / "03_feature_engineering",
@@ -69,6 +74,8 @@ class DataSciencePipeline:
         self._validate_config()
         self._setup_directories()
         self._initialize_intermediate_storage()
+        self._planner = None          # set after Stage 0
+        self._planner_plan: dict = {} # populated by Stage 0
         
     def _validate_config(self):
         """Validate configuration parameters"""
@@ -90,6 +97,57 @@ class DataSciencePipeline:
         self.stage_outputs = {}
         self.data_lineage = []
     
+    # ========================================================================
+    # STAGE 0: PLANNING
+    # ========================================================================
+
+    def run_stage_0_planning(self):
+        """
+        Stage 0: Planner Agent
+
+        Purpose : parse business description, generate all downstream configs
+        Input   : business_description (str) + first rows of the dataset
+        Output  : plan dict stored in self._planner_plan
+        """
+        print("\n" + "=" * 80)
+        print("STAGE 0: PLANNING")
+        print("=" * 80)
+
+        try:
+            import pandas as pd
+            from planner_agent import PlannerAgent, PlannerConfig
+
+            planner_config = PlannerConfig(
+                output_dir=str(self.config.stage_dirs[0]),
+            )
+            self._planner = PlannerAgent(planner_config)
+
+            # Load a small sample so the LLM can see the schema
+            data_sample = pd.read_csv(self.config.data_path,
+                                      nrows=planner_config.data_sample_rows)
+
+            plan = self._planner.plan(
+                business_description=self.config.business_description,
+                data_sample=data_sample,
+            )
+            self._planner_plan = plan
+
+            # Apply planner's target_column / problem_type only if not set by user
+            if not self.config.target_column and plan.get("target_column"):
+                self.config.target_column = plan["target_column"]
+                print(f"  [Planner] target_column set to: {self.config.target_column}")
+
+            if plan.get("problem_type"):
+                self.config.problem_type = plan["problem_type"]
+                print(f"  [Planner] problem_type set to : {self.config.problem_type}")
+
+            self.stage_outputs[0] = {"plan": plan}
+            return plan
+
+        except Exception as exc:
+            print(f"❌ Stage 0 failed: {exc}")
+            raise
+
     # ========================================================================
     # STAGE 1: DATA UNDERSTANDING
     # ========================================================================
@@ -152,9 +210,22 @@ class DataSciencePipeline:
             print(f"  - Columns: {len(raw_data.columns)}")
             print(f"  - Rows: {len(raw_data)}")
             print(f"  - Output directory: {self.config.stage_dirs[1]}")
-            
+
+            # ── Adaptive replanning ──────────────────────────────────
+            if self._planner is not None and self._planner_plan:
+                replan = self._planner.replan_after_understanding(
+                    understanding_output=result,
+                    current_plan=self._planner_plan,
+                )
+                updated = replan.get("updated_plan", {})
+                if updated:
+                    import copy
+                    self._planner_plan = self._deep_merge(
+                        copy.deepcopy(self._planner_plan), updated
+                    )
+
             return raw_data, result
-            
+
         except Exception as e:
             print(f"❌ Stage 1 failed: {str(e)}")
             raise
@@ -262,11 +333,17 @@ class DataSciencePipeline:
             )
             from sklearn.model_selection import train_test_split
             
+            # Pull planner overrides (if any)
+            fe_cfg = self._planner_plan.get("feature_config", {})
+
             # Configure agent
             config = FeatureEngineeringConfig(
                 target_column=self.config.target_column,
                 problem_type=self.config.problem_type,
-                task_description="AutoDS Feature Engineering",
+                task_description=fe_cfg.get(
+                    "task_description", "AutoDS Feature Engineering"
+                ),
+                use_llm_planner=fe_cfg.get("use_llm_planner", True),
                 save_artifacts=True,
                 output_dir=str(self.config.stage_dirs[3]),
                 random_state=self.config.random_state,
@@ -389,11 +466,20 @@ class DataSciencePipeline:
             # Import agent
             from modelling_agent import ModellingConfig, ModellingAgent
             
+            # Pull planner overrides (if any)
+            mc_cfg = self._planner_plan.get("modelling_config", {})
+
             # Configure agent
             config = ModellingConfig(
                 target_column=self.config.target_column,
                 problem_type=self.config.problem_type,
                 task_description="AutoDS Modelling",
+                primary_metric=mc_cfg.get(
+                    "primary_metric",
+                    self._planner_plan.get("primary_metric"),
+                ),
+                cv_folds=mc_cfg.get("cv_folds", 5),
+                candidate_model_names=mc_cfg.get("candidate_model_names") or None,
                 output_dir=str(self.config.stage_dirs[4]),
                 random_state=self.config.random_state,
             )
@@ -480,7 +566,7 @@ class DataSciencePipeline:
             print(f"  - Best model: {result.get('best_model_name', 'N/A')}")
             print(f"  - Primary metric: {result.get('primary_metric', 'N/A')}")
             print(f"  - Output directory: {self.config.stage_dirs[5]}")
-            
+
             # Track data lineage
             self.data_lineage.append({
                 'stage': 5,
@@ -488,13 +574,23 @@ class DataSciencePipeline:
                 'primary_metric': result.get('primary_metric'),
                 'candidate_models': result.get('benchmark_overview', {}).get('candidate_model_count'),
             })
-            
+
+            # ── Planner post-modelling review ────────────────────────
+            planner_review = {}
+            if self._planner is not None:
+                modelling_result = self.stage_outputs.get(4, {}).get('modelling_result', {})
+                planner_review = self._planner.review_modelling(
+                    modelling_output=modelling_result,
+                    evaluation_output=result,
+                )
+
             # Store results
             self.stage_outputs[5] = {
                 'evaluation_result': result,
+                'planner_review': planner_review,
                 'agent': agent,
             }
-            
+
             return result
             
         except Exception as e:
@@ -599,11 +695,15 @@ class DataSciencePipeline:
                 "modeling": self._make_json_serializable(self.stage_outputs.get(4, {}).get('modelling_result', {})),
                 "evaluation": self._make_json_serializable(self.stage_outputs.get(5, {}).get('evaluation_result', {})),
                 "business_context": {
-                    "use_case": "Automated Data Science",
+                    "use_case": self.config.business_description or "Automated Data Science",
                     "industry": "Technology",
                     "target_audience": "Data Science Team",
-                    "business_goal": "Automated end-to-end data science pipeline",
+                    "business_goal": self.config.business_description or "Automated end-to-end data science pipeline",
                 },
+                "planner_review": self._make_json_serializable(
+                    self.stage_outputs.get(5, {}).get('planner_review', {})
+                ),
+                "planner_plan": self._make_json_serializable(self._planner_plan),
             }
             
             # 保存 JSON
@@ -647,6 +747,10 @@ class DataSciencePipeline:
         print("="*80)
         
         try:
+            # Stage 0: Planning (optional)
+            if self.config.use_planner:
+                self.run_stage_0_planning()
+
             # Run all 6 stages
             self.run_stage_1_understanding()
             self.run_stage_2_cleaning()
@@ -668,6 +772,16 @@ class DataSciencePipeline:
             print(f"\n❌ Pipeline execution failed: {str(e)}")
             raise
     
+    @staticmethod
+    def _deep_merge(base: dict, override: dict) -> dict:
+        """Recursively merge override into base (override wins on conflicts)."""
+        for key, val in override.items():
+            if key in base and isinstance(base[key], dict) and isinstance(val, dict):
+                base[key] = DataSciencePipeline._deep_merge(base[key], val)
+            else:
+                base[key] = val
+        return base
+
     def _get_final_summary(self):
         """Get final pipeline summary"""
         return {

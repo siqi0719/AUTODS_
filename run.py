@@ -86,9 +86,24 @@ print("🔧 step 3：config...")
 
 config = PipelineConfig()
 config.data_path = "_example_data_temp.csv"
-config.target_column = "target"
-config.problem_type = "classification"
 config.random_state = 42
+
+# ── Planner settings ─────────────────────────────────────────────────────────
+# Describe the business objective in natural language.
+# The Planner Agent will infer target_column, problem_type, candidate models, etc.
+# If you already know target_column / problem_type, set them here and the Planner
+# will keep your values and only fill in the rest.
+config.business_description = (
+    "We have a customer dataset and want to predict whether a customer will make "
+    "a purchase (binary outcome). The target column is 'target'. "
+    "The model should be reasonably interpretable."
+)
+config.use_planner = True   # set False to skip Stage 0 entirely
+
+# Optional: override Planner's inference if you already know these values.
+config.target_column = "target"        # keep None to let Planner infer
+config.problem_type = "classification" # keep None to let Planner infer
+# ─────────────────────────────────────────────────────────────────────────────
 
 print(f"✓ finished: {config.data_path} | target: {config.target_column}\n")
 

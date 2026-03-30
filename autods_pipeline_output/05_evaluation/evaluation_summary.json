@@ -91,7 +91,7 @@
     "metrics": {
       "rank": 1,
       "model_name": "lightgbm",
-      "cv_runtime_seconds": 0.2557,
+      "cv_runtime_seconds": 0.3152,
       "cv_accuracy": 0.5591666666666667,
       "cv_precision": 0.6206060606060606,
       "cv_recall": 0.6555555555555556,
