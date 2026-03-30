@@ -1,49 +1,69 @@
 # AutoDS - Automated Data Science Pipeline
 
-A complete, end-to-end **automated data science pipeline** that processes raw data through 6 intelligent stages and generates comprehensive technical and business reports.
+A complete, end-to-end **automated data science pipeline** that processes raw data through 7 intelligent stages and generates comprehensive technical and business reports.
+
+---
 
 ## 🎯 Project Overview
 
 AutoDS is a production-ready data science automation framework that:
 
+- **Understands your business goal** from a plain-English description and configures the entire pipeline automatically
 - **Automates the entire ML workflow** from data understanding to reporting
-- **Handles real-world data issues** (missing values, outliers, imbalanced classes)
+- **Handles real-world data issues** (missing values, outliers, imbalanced classes, inconsistent formats)
 - **Generates intelligent reports** with technical analysis and business insights
-- **Requires minimal configuration** - works out of the box with sensible defaults
-- **Zero external dependencies conflicts** - uses pure Python implementations where needed
+- **Requires minimal configuration** — works out of the box with sensible defaults
+- **Supports LLM integration** at multiple stages (Anthropic Claude and OpenAI) with rule-based fallback
+
+---
 
 ## ✨ Key Features
 
-### ✅ Complete 6-Stage Pipeline
+### ✅ Complete 7-Stage Pipeline
 
 | Stage | Name | Purpose | Output |
 |-------|------|---------|--------|
-| 1 | **Data Understanding** | Analyze data characteristics | Data profile, statistics |
-| 2 | **Data Cleaning** | Remove anomalies, handle missing values | Cleaned dataset, report |
-| 3 | **Feature Engineering** | Transform and select features | Train/test splits |
-| 4 | **Modelling** | Train multiple ML models | Best model, metrics |
+| 0 | **Planner** | Parse business description, generate all agent configs | Per-agent config plan, adaptive adjustments |
+| 1 | **Data Understanding** | Analyse data characteristics | Data profile, statistics |
+| 2 | **Data Cleaning** | Remove anomalies, handle missing values | Cleaned dataset, quality report |
+| 3 | **Feature Engineering** | Transform and select features | Train / test splits |
+| 4 | **Modelling** | Train multiple ML models | Best model, leaderboard |
 | 5 | **Evaluation** | Comprehensive model evaluation | Performance metrics |
 | 6 | **Report Generation** | Generate technical & business reports | Markdown + JSON reports |
 
-### 🎨 Intelligent Data Handling
+### 🧠 LLM-Powered Planning (Stage 0)
 
-- **Automatic column type detection** (numeric, categorical, special format)
-- **Smart missing value imputation** (median for numeric, mode for categorical)
-- **Robust outlier detection and removal** using IQR method
-- **Automatic stratified train/test split** with fallback for small datasets
-- **Class balance detection** to prevent errors on imbalanced data
+- Accepts a **natural-language business description** and automatically infers `target_column`, `problem_type`, `primary_metric`, and candidate models
+- **Adaptive replanning** after Stage 1: detects class imbalance, high missing rates, and small datasets, and adjusts downstream configs accordingly
+- **Post-modelling review** generates a professional narrative summary for the final report
+- Works with **Anthropic Claude** (primary) or **OpenAI** (fallback); silently falls back to rule-based defaults when no API key is present
+
+### 🎨 Intelligent Data Cleaning (Stage 2)
+
+- **Column-name normalisation** — strip, lowercase, snake_case
+- **Pseudo-null unification** — `"None"`, `"nan"`, `"N/A"`, `""`, `"-"`, `"unknown"`, … → `NaN`
+- **ID / constant / duplicate column detection and removal**
+- **High-missing-rate column removal** (configurable threshold, default 60 %)
+- **Smart missing-value imputation** — median / mean / zero / drop-row for numeric; mode or `"MISSING"` for categorical; LLM-generated strategy when enabled
+- **Anomaly handling** — IQR-based remove *or* clip (configurable); target column always protected
+- **Datetime column detection and ISO-8601 normalisation**
+- **Boolean column unification** → `"0"` / `"1"`
+- **Numeric range constraints** (per-column min / max)
+- **Special-format preservation** — phone numbers, postal codes, ID cards, order numbers, bank cards
+- Optional **LLM column-type advisor** for ambiguous columns
 
 ### 📊 Comprehensive Reporting
 
-**Technical Report Includes:**
+**Technical Report includes:**
 - Project overview and data statistics
-- Data quality assessment
+- Data quality assessment (before / after cleaning)
 - Data cleaning summary
 - Feature engineering details
 - Model selection and performance
+- Planner reasoning and adaptive adjustments
 - Technical recommendations
 
-**Business Report Includes:**
+**Business Report includes:**
 - Executive summary
 - Project background and goals
 - Key findings and insights
@@ -52,463 +72,430 @@ AutoDS is a production-ready data science automation framework that:
 - Risk assessment
 - ROI analysis
 
+---
+
 ## 🚀 Quick Start
 
 ### Prerequisites
 
-```bash
-Python 3.8+
-pandas
-scikit-learn
-lightgbm
-numpy
+```
+Python 3.9+
+pandas · scikit-learn · lightgbm · numpy
 ```
 
 ### Installation
 
 ```bash
-# Clone or download the project
 cd AUTODS_
+pip install pandas scikit-learn lightgbm numpy python-dotenv
 
-# Install dependencies
-pip install pandas scikit-learn lightgbm numpy
-
-# Optional: for OpenAI API integration
-pip install openai
+# For LLM features (optional — pipeline runs without these)
+pip install anthropic                  # Claude (recommended)
+pip install langchain-openai langchain-core   # OpenAI alternative
 ```
 
-### Run the Pipeline
+### API Key Setup (optional)
+
+Create a `.env` file in the project root:
 
 ```bash
-# Simplest way (with automatic module cleanup)
-python run_no_langchain.py
+# Anthropic Claude (preferred by PlannerAgent and DataCleaningAgent)
+ANTHROPIC_API_KEY=sk-ant-xxxxxxxxxx
 
-# Alternative methods
-python run.py                    # Simple version
-python run_complete.py          # Complete version
-python run_final_clean.py       # Clean version
+# OpenAI (used as fallback, and by FeatureEngineeringAgent / ModellingAgent)
+OPENAI_API_KEY=sk-xxxxxxxxxx
+```
+
+If neither key is present, all LLM features fall back to rule-based defaults and the pipeline runs normally.
+
+### Configure and Run
+
+Edit `run.py`:
+
+```python
+# Describe your task in plain English
+config.business_description = (
+    "We have a customer dataset and want to predict whether a customer "
+    "will churn. The target column is 'churn'. The model should be interpretable."
+)
+config.use_planner   = True      # set False to skip Stage 0
+config.target_column = "churn"   # optional — Planner can infer this
+config.problem_type  = "classification"
+```
+
+Then run:
+
+```bash
+python run.py
 ```
 
 ### Expected Output
 
 ```
 ================================================================================
-🚀 AutoDS Pipeline - Final Version (6 Stages)
-================================================================================
+STAGE 0: PLANNER — Pre-run Planning
+============================================================
+[PlannerAgent] Using Anthropic Claude (claude-sonnet-4-6)
+  target_column  : churn
+  problem_type   : classification
+  primary_metric : roc_auc
+  candidate_models: ['LogisticRegression', 'RandomForest', 'GradientBoosting']
 
-📊 Stage 1: Data Understanding
+STAGE 1: DATA UNDERSTANDING
+================================================================================
 ✓ Understanding complete
 
-📊 Stage 2: Data Cleaning
-✓ Cleaning complete (97% data retention)
+STAGE 2: DATA CLEANING
+================================================================================
+[DataCleaner] Input  : 100 rows × 6 cols
+[DataCleaner] Output : 94 rows × 5 cols
 
-📊 Stage 3: Feature Engineering
-✓ Feature engineering complete
-  - Training set: (77, 3)
-  - Test set: (20, 3)
+STAGE 3: FEATURE ENGINEERING
+================================================================================
+✓ Feature engineering complete — Training set: (75, 4)  Test set: (19, 4)
 
-📊 Stage 4: Modelling
-✓ Modelling complete
-  - Best model: LightGBM
+STAGE 4: MODELLING
+================================================================================
+✓ Modelling complete — Best model: RandomForest
 
-📊 Stage 5: Evaluation
-✓ Evaluation complete
-  - Primary metric: roc_auc
+STAGE 5: EVALUATION
+================================================================================
+✓ Evaluation complete — Primary metric: roc_auc
 
-📊 Stage 6: Report Generation
-✓ Report generation complete
-  - Markdown Report: autods_pipeline_output/06_reports/report.md
-  - JSON Report: autods_pipeline_output/06_reports/report.json
+STAGE 6: REPORT GENERATION
+================================================================================
+✓ Report saved: autods_pipeline_output/06_reports/report.md
 
 ================================================================================
-✅ All 6 Stages Completed Successfully!
+✅ PIPELINE EXECUTION COMPLETED SUCCESSFULLY!
 ================================================================================
 ```
+
+---
 
 ## 📁 Project Structure
 
 ```
 AUTODS_/
-├── run_no_langchain.py                              # Main entry point ⭐
-├── run.py                                           # Simple version
-├── run_complete.py                                  # Complete version
-├── autods_implementation_guide.py                   # Core pipeline implementation
-├── multi_agent_report_generator_standalone.py       # Stage 6 report generator
+├── run.py                                      # Entry point ⭐
+├── autods_implementation_guide.py              # Core pipeline orchestration
 │
-├── data_understanding_agent.py                      # Stage 1 agent
-├── data_cleaning_agent.py                           # Stage 2 agent
-├── feature_engineering_agent.py                     # Stage 3 agent
-├── modelling_agent.py                               # Stage 4 agent
-├── evaluation_agent.py                              # Stage 5 agent
+├── planner_agent.py                            # Stage 0 — Planner
+├── data_understanding_agent.py                 # Stage 1 — Understanding
+├── data_cleaning_agent.py                      # Stage 2 — Cleaning (v2.0)
+├── feature_engineering_agent.py                # Stage 3 — Feature Engineering
+├── modelling_agent.py                          # Stage 4 — Modelling
+├── evaluation.py                               # Stage 5 — Evaluation
+├── multi_agent_report_generator_standalone.py  # Stage 6 — Report Generation
 │
-├── autods_pipeline_output/                          # Output directory
-│   ├── 01_understanding/                            # Stage 1 outputs
-│   ├── 02_cleaning/                                 # Stage 2 outputs
-│   ├── 03_feature_engineering/                      # Stage 3 outputs
-│   ├── 04_modelling/                                # Stage 4 outputs
-│   ├── 05_evaluation/                               # Stage 5 outputs
-│   └── 06_reports/                                  # Stage 6 outputs
-│       ├── report.md                                # Final report
-│       └── report.json                              # Report in JSON format
+├── autods_pipeline_output/                     # Runtime outputs
+│   ├── 00_planning/                            # Stage 0: plan JSON files
+│   ├── 01_understanding/                       # Stage 1: data profile
+│   ├── 02_cleaning/                            # Stage 2: cleaned data + report
+│   ├── 03_feature_engineering/                 # Stage 3: train/test splits
+│   ├── 04_modelling/                           # Stage 4: models + leaderboard
+│   ├── 05_evaluation/                          # Stage 5: evaluation metrics
+│   └── 06_reports/                             # Stage 6: report.md + report.json
 │
-├── _example_data_temp.csv                           # Example dataset
-├── README.md                                         # This file
-└── requirements.txt                                 # Python dependencies
+├── README.md                                   # This file
+├── README_DataCleaningAgent.md                 # DataCleaningAgent v2.0 API reference
+├── requirements.txt                            # Python dependencies
+└── pyproject.toml                              # Build configuration
 ```
+
+---
 
 ## 🔧 Core Components
 
-### 1. Data Understanding Agent
-**Purpose**: Analyze raw data characteristics
+### Stage 0 — Planner Agent (`planner_agent.py`)
+
+**Purpose**: Translate a business description into machine-readable configs for all downstream agents.
+
+**Three functions:**
+
+| Function | Trigger point | What it does |
+|----------|--------------|-------------|
+| `plan()` | Pipeline start | Reads business description + data schema → outputs target column, problem type, metric, candidate models, feature task description |
+| `replan_after_understanding()` | After Stage 1 | Inspects DataUnderstanding output; adjusts metric (e.g., imbalance → F1), disables LLM planner on high-missing data, reduces CV folds on small datasets |
+| `review_modelling()` | After Stage 5 | Reads leaderboard; writes key findings and a 2–4 sentence narrative for the business report |
+
+**Config** (`PlannerConfig`):
+
+```python
+PlannerConfig(
+    llm_model_anthropic = "claude-sonnet-4-6",
+    llm_model_openai    = "gpt-4o-mini",
+    temperature         = 0.0,
+    use_adaptive_replanning = True,
+    data_sample_rows    = 5,
+)
+```
+
+**Plan output saved to** `autods_pipeline_output/00_planning/`:
+- `initial_plan.json`
+- `replan_after_understanding.json`
+- `modelling_review.json`
+
+---
+
+### Stage 1 — Data Understanding (`data_understanding_agent.py`)
+
+**Purpose**: Analyse raw data characteristics and produce a structured profile.
 
 **Outputs:**
-- Data profile (shape, columns, types)
-- Missing value analysis
-- Target variable distribution
+- Data shape, column types, missing-value analysis
+- Target variable distribution and class imbalance detection
 - Data quality metrics
+- Inferred problem type (used when Planner is disabled)
 
-### 2. Data Cleaning Agent
-**Purpose**: Clean and prepare data
+---
 
-**Handles:**
-- Missing values (median/mode imputation)
-- Outlier detection and removal (IQR method)
-- Duplicate rows removal
-- Data type validation
-- Special format preservation
+### Stage 2 — Data Cleaning (`data_cleaning_agent.py`)
 
-**Data Retention**: Typically 97%+ of original data
+**Purpose**: Produce a clean, analysis-ready DataFrame.
 
-### 3. Feature Engineering Agent
-**Purpose**: Transform and select features
+**Cleaning pipeline (in execution order):**
 
-**Features:**
-- Automated feature selection
-- Feature scaling and normalization
-- Dimensionality reduction
-- Train/test split (80/20)
-- Stratified splitting with fallback
+```
+Column-name normalisation     → strip · lowercase · snake_case
+Pseudo-null unification       → "None"/"nan"/"N/A"/""/"–"/… → NaN
+Column-type identification    → ID · special · numeric · datetime · bool · categorical
+Constant-column removal       → unique non-null values == 1
+Duplicate-column removal      → identical content columns
+High-missing-rate removal     → missing rate > threshold (default 60 %)
+Duplicate-row removal
+Missing-value imputation      → numeric: median/mean/zero/drop_row (LLM plan or default)
+                                categorical: mode or "MISSING"
+Anomaly handling (IQR)        → remove rows or clip to bounds; target column protected
+Datetime normalisation        → YYYY-MM-DD
+Boolean unification           → "0" / "1"
+Special-format preservation   → trim only
+Categorical consistency       → strip + lowercase
+Numeric range constraints     → per-column min / max
+```
 
-### 4. Modelling Agent
-**Purpose**: Train and optimize models
+**Config** (`DataCleaningConfig`):
 
-**Models Tested:**
-- LightGBM
-- XGBoost
-- Random Forest
-- Gradient Boosting
-- Others
+```python
+DataCleaningConfig(
+    target_column            = "churn",     # protected from anomaly removal
+    anomaly_strategy         = "clip",      # "remove" (default) or "clip"
+    iqr_multiplier           = 1.5,
+    missing_drop_threshold   = 0.6,
+    use_llm_column_advisor   = True,        # LLM for ambiguous columns
+    column_constraints       = {
+        "age":   {"min": 0, "max": 120},
+        "score": {"min": 0, "max": 100},
+    },
+)
+```
 
-**Process:**
-- Hyperparameter optimization
-- Cross-validation evaluation
-- Model comparison and ranking
+For full API documentation see [`README_DataCleaningAgent.md`](README_DataCleaningAgent.md).
+
+---
+
+### Stage 3 — Feature Engineering (`feature_engineering_agent.py`)
+
+**Purpose**: Transform features and prepare train / test splits.
+
+- Automated feature selection and scaling
+- Rare-category grouping
+- High-correlation column removal
+- Optional LLM-generated feature actions
+- Task description and `use_llm_planner` flag set automatically by Planner (Stage 0)
+
+---
+
+### Stage 4 — Modelling (`modelling_agent.py`)
+
+**Purpose**: Train and compare multiple ML models.
+
+- Candidate model list set automatically by Planner (Stage 0)
+- Primary metric and CV folds also propagated from Planner
+- Cross-validation evaluation and leaderboard ranking
 - Best model selection
 
-### 5. Evaluation Agent
-**Purpose**: Comprehensive model evaluation
+---
+
+### Stage 5 — Evaluation (`evaluation.py`)
+
+**Purpose**: Comprehensive model evaluation and selection.
 
 **Metrics:**
 - Classification: accuracy, precision, recall, F1, ROC-AUC
 - Regression: MAE, MSE, RMSE, R²
-- Performance visualization
-- Feature importance analysis
 
-### 6. Report Generation Agent
-**Purpose**: Generate comprehensive reports
+---
 
-**Output Formats:**
-- Markdown (human-readable)
-- JSON (machine-readable)
+### Stage 6 — Report Generation (`multi_agent_report_generator_standalone.py`)
 
-**Content:**
-- Complete technical analysis
+**Purpose**: Generate final technical and business reports.
+
+**Output formats:** Markdown + JSON
+
+**Content includes:**
+- Full technical analysis across all stages
 - Business-focused summary
-- Actionable recommendations
-- Risk assessment
+- Planner reasoning, adaptive adjustments, and modelling review
+- Actionable recommendations and risk assessment
+
+---
 
 ## 📊 Data Flow
 
 ```
-Raw Data (CSV/DataFrame)
-    ↓
-Stage 1: Understanding
-  - Analyze structure
-  - Identify issues
-    ↓
-Stage 2: Cleaning
-  - Handle missing values
-  - Remove outliers
-  - (97% retention)
-    ↓
-Stage 3: Feature Engineering
-  - Select/transform features
-  - Split data (80/20)
-  - (77 train, 20 test samples)
-    ↓
-Stage 4: Modelling
-  - Train multiple models
-  - Optimize parameters
-  - (LightGBM best)
-    ↓
-Stage 5: Evaluation
-  - Evaluate performance
-  - Analyze results
-  - (ROC-AUC: ~0.85)
-    ↓
-Stage 6: Reporting
-  - Generate technical report
-  - Generate business report
-  - Create JSON output
-    ↓
-Final Reports (MD + JSON)
+Business Description + CSV
+        │
+        ▼
+┌─────────────────────┐
+│  Stage 0: Planner   │  → initial_plan.json
+│  (LLM or rules)     │
+└────────┬────────────┘
+         │  configs for Stages 1–4
+         ▼
+┌─────────────────────┐
+│  Stage 1:           │
+│  Understanding      │  → data profile, quality metrics
+└────────┬────────────┘
+         │  adaptive replanning
+         ▼
+┌─────────────────────┐
+│  Stage 2: Cleaning  │  → cleaned DataFrame, cleaning_report.json
+└────────┬────────────┘
+         ▼
+┌─────────────────────┐
+│  Stage 3: Feature   │
+│  Engineering        │  → X_train, X_test, y_train, y_test
+└────────┬────────────┘
+         ▼
+┌─────────────────────┐
+│  Stage 4: Modelling │  → leaderboard, best model
+└────────┬────────────┘
+         ▼
+┌─────────────────────┐
+│  Stage 5: Evaluation│  → evaluation metrics
+└────────┬────────────┘
+         │  post-modelling review
+         ▼
+┌─────────────────────┐
+│  Stage 6: Report    │  → report.md, report.json
+└─────────────────────┘
 ```
+
+---
 
 ## 🛠️ Configuration
 
-### Modify Data Source
-
-Edit `run_no_langchain.py` (lines 50-70):
+### Pipeline-Level Settings (`PipelineConfig`)
 
 ```python
-# Option 1: Use CSV file
-df = pd.read_csv("your_data.csv")
+config = PipelineConfig()
+config.data_path            = "your_data.csv"
+config.target_column        = "target"        # optional if use_planner=True
+config.problem_type         = "classification" # optional if use_planner=True
+config.random_state         = 42
 
-# Option 2: Use database
-# df = pd.read_sql("SELECT * FROM table", connection)
-
-# Option 3: Generate synthetic data
-# data = {...}
-# df = pd.DataFrame(data)
+# Planner settings
+config.business_description = "Predict customer churn from usage data."
+config.use_planner          = True    # False to skip Stage 0 entirely
 ```
 
-### Modify Target Column
-
-Edit `run_no_langchain.py` (line 95):
+### Skipping the Planner
 
 ```python
-config.target_column = "your_target_column"
+config.use_planner   = False
+config.target_column = "target"
+config.problem_type  = "classification"
+# All other configs use their own defaults
 ```
 
-### Change Problem Type
+### Custom Cleaning Config
 
-Edit `run_no_langchain.py` (line 96):
+Pass a `DataCleaningConfig` directly inside `run_stage_2_cleaning()` in `autods_implementation_guide.py` if you need full control over cleaning behaviour. See [`README_DataCleaningAgent.md`](README_DataCleaningAgent.md) for all options.
 
-```python
-config.problem_type = "classification"  # or "regression"
-```
-
-### Adjust Train/Test Split
-
-Edit `autods_implementation_guide.py` Stage 3:
-
-```python
-test_size = 0.2  # 20% test, 80% train
-```
-
-## 📈 Performance Metrics
-
-With the example dataset (100 samples, 6 features):
-
-| Metric | Value |
-|--------|-------|
-| Original Samples | 100 |
-| After Cleaning | 97 (97% retention) |
-| Training Samples | 77 (80%) |
-| Testing Samples | 20 (20%) |
-| Features | 3 (engineered) |
-| Best Model | LightGBM |
-| ROC-AUC Score | ~0.85 |
-| Processing Time | ~5 seconds |
+---
 
 ## 🔍 Troubleshooting
 
-### Problem: Module Not Found Errors
+### No LLM API key
 
-**Solution**: Ensure all agent files are in the same directory
+All LLM features (Planner, DataCleaning column advisor, FeatureEngineering, Modelling) degrade gracefully to rule-based defaults. The pipeline always runs end-to-end without any API key.
 
-```bash
-# Check files exist
-ls *agent.py
-ls autods_implementation_guide.py
-ls multi_agent_report_generator_standalone.py
-```
+### Small dataset / class imbalance
 
-### Problem: DataFrame Not Serializable
+Stage 0 (Planner) detects these automatically and adjusts CV folds and the primary metric. If the Planner is disabled, Stage 3 already handles stratified-split fallback automatically.
 
-**Solution**: Automatically handled by `_make_json_serializable()` method
+### DataFrame not JSON-serialisable
 
-The pipeline will:
-1. Detect DataFrame/Series/numpy objects
-2. Convert them to JSON-compatible format
-3. Successfully serialize to JSON
+Handled automatically by `_make_json_serializable()` in the pipeline orchestrator.
 
-### Problem: Small Dataset Errors
+### Module not found
 
-**Solution**: Automatic detection and handling
+Ensure all `*_agent.py` files, `evaluation.py`, `multi_agent_report_generator_standalone.py`, and `autods_implementation_guide.py` are in the same directory as `run.py`.
 
-The pipeline will:
-1. Check class distribution
-2. Disable stratify if needed
-3. Continue with random split
+---
 
-### Problem: Missing Values or Outliers
+## 📈 Performance Characteristics
 
-**Solution**: Automatic detection and handling
+- **Processing speed**: ~5–10 seconds for a 100-row dataset
+- **Memory usage**: < 500 MB for typical datasets
+- **Scalability**: tested up to 100 K+ rows
+- **Data retention**: typically 90 %+ after cleaning on real-world data
 
-The pipeline will:
-1. Fill missing values with median/mode
-2. Detect outliers using IQR method
-3. Remove anomalies while preserving data integrity
-
-## 🚨 Common Issues and Solutions
-
-### Issue: "ModuleNotFoundError: No module named 'langchain'"
-
-**Cause**: Old version of multi_agent_report_generator.py in use
-
-**Solution**: 
-```bash
-# Use the new standalone version
-python run_no_langchain.py
-
-# Or delete old module cache
-rm -rf __pycache__
-```
-
-### Issue: "The least populated class in y has only 1 member"
-
-**Cause**: Very small dataset with imbalanced classes
-
-**Solution**: Automatic in Stage 3 - pipeline detects this and disables stratify
-
-### Issue: "Object of type DataFrame is not JSON serializable"
-
-**Cause**: DataFrame in report data
-
-**Solution**: Automatic - pipeline calls `_make_json_serializable()` before JSON dump
+---
 
 ## 📚 Advanced Usage
 
-### Using Custom Models
-
-Edit `modelling_agent.py`:
+### Accessing Intermediate Results
 
 ```python
-from sklearn.ensemble import GradientBoostingClassifier
+from autods_implementation_guide import PipelineConfig, DataSciencePipeline
 
-# Add to models list
-models = {
-    'custom_model': GradientBoostingClassifier(...)
-}
-```
+config = PipelineConfig()
+config.data_path            = "data.csv"
+config.target_column        = "target"
+config.business_description = "Predict customer churn."
 
-### Exporting Results
-
-```python
-# Access pipeline outputs
 pipeline = DataSciencePipeline(config)
-result = pipeline.run_complete_pipeline()
+result   = pipeline.run_complete_pipeline()
 
-# Export to CSV
-cleaned_data = pipeline.stage_outputs[2]['cleaned_data']
-cleaned_data.to_csv('output.csv', index=False)
-
-# Export model
-import pickle
-model = pipeline.stage_outputs[4]['best_model']
-pickle.dump(model, open('model.pkl', 'wb'))
+# Access any stage output
+planner_plan  = pipeline.stage_outputs[0]["plan"]
+cleaned_df    = pipeline.stage_outputs[2]["cleaned_data"]
+best_model    = pipeline.stage_outputs[4]["modelling_result"]["best_model_name"]
+review        = pipeline.stage_outputs[5]["planner_review"]["review_text"]
 ```
 
-### Integration with Other Systems
+### Using DataCleaningAgent Standalone
 
-The JSON output can be easily integrated:
+```python
+from data_cleaning_agent import DataCleaningAgent, DataCleaningConfig
+
+config = DataCleaningConfig(
+    target_column   = "churn",
+    anomaly_strategy= "clip",
+)
+agent  = DataCleaningAgent(config=config)
+result = agent.run("data.csv")
+
+cleaned_df = result["data"]
+report     = result["report"]
+```
+
+### Integrating the Final Report
 
 ```python
 import json
 
-with open('autods_pipeline_output/06_reports/report.json') as f:
+with open("autods_pipeline_output/06_reports/report.json") as f:
     report = json.load(f)
 
-# Use in your application
-print(report['technical_report'])
-print(report['business_report'])
+print(report["technical_report"])
+print(report["business_report"])
+print(report["planner_review"])   # Planner's modelling narrative
 ```
 
-## 📊 Output Examples
-
-### Report Structure
-
-```
-# Data Science Project Report
-
-## Technical Report
-
-### Project Overview
-- Project Name: AutoDS Pipeline
-- Dataset: Processed Dataset
-- Timestamp: 2024-03-20T15:30:00
-
-### Data Analysis
-- Original Samples: 100
-- Features: 6
-- Missing Values: 5
-
-### Data Cleaning
-- Cleaned Samples: 97
-- Rows Removed: 3
-- Data Retention: 97%
-
-### Model Performance
-- Best Model: LightGBM
-- ROC-AUC: 0.85
-- Accuracy: 0.82
-
-## Business Report
-
-### Executive Summary
-This report provides business-focused insights from the automated data science pipeline.
-
-### Key Findings
-1. Data quality is good with 97% retention
-2. Model performance is satisfactory (85% ROC-AUC)
-3. Ready for production deployment
-
-### Recommendations
-1. Deploy model to production
-2. Monitor performance continuously
-3. Retrain monthly with new data
-```
-
-## 🤝 Contributing
-
-To extend or modify the pipeline:
-
-1. **Adding a new agent**: Create a new `*_agent.py` file
-2. **Custom preprocessing**: Modify `data_cleaning_agent.py`
-3. **New models**: Edit `modelling_agent.py`
-4. **Custom reports**: Modify `multi_agent_report_generator_standalone.py`
-
-## 📄 License
-
-This project is provided as-is for educational and commercial use.
-
-## 📞 Support
-
-For issues or questions:
-
-1. Check `COMPLETE_SOLUTION_FINAL.md` for troubleshooting
-2. Review agent docstrings for API details
-3. Check output logs in `autods_pipeline_output/` directory
-4. Verify all dependencies are installed: `pip install -r requirements.txt`
-
-## 🎯 Next Steps
-
-1. **Run the pipeline**: `python run_no_langchain.py`
-2. **Check outputs**: Open `autods_pipeline_output/06_reports/report.md`
-3. **Customize settings**: Modify `run_no_langchain.py` for your data
-4. **Integrate results**: Use the JSON output in your application
-5. **Monitor performance**: Retrain pipeline regularly with new data
+---
 
 ## 📋 Requirements
 
@@ -517,38 +504,42 @@ pandas>=1.3.0
 scikit-learn>=0.24.0
 lightgbm>=3.0.0
 numpy>=1.20.0
+python-dotenv>=0.21.0
+
+# Optional — LLM features
+anthropic>=0.20.0
+langchain-openai>=0.1.0
+langchain-core>=0.1.0
 ```
-
-## ✅ Version History
-
-**v0.0** (Current)
-- Complete 6-stage pipeline
-- Standalone Stage 6 implementation
-- Zero LangChain dependencies
-- JSON serialization support
-- Comprehensive error handling
-- English documentation
-
-## 🎉 Features Highlights
-
-✅ **Fully Automated** - Minimal user intervention required
-✅ **Production Ready** - Handles real-world data issues
-✅ **Comprehensive** - From data understanding to business reports
-✅ **Flexible** - Works with any tabular dataset
-✅ **Reliable** - Robust error handling and fallbacks
-✅ **Fast** - Processes datasets in seconds
-✅ **Transparent** - Detailed logging and reporting
-
-## 🏆 Performance Characteristics
-
-- **Processing Speed**: ~5 seconds for 100-sample dataset
-- **Memory Usage**: < 500MB for typical datasets
-- **Scalability**: Tested up to 100K+ samples
-- **Data Retention**: 95%+ on typical real-world data
-- **Model Accuracy**: Competitive with manual tuning
 
 ---
 
-**AutoDS** - Making Data Science Accessible, Automated, and Reliable.
+## ✅ Version History
 
-Built with ❤️ for data scientists and ML engineers.
+**v0.1** (current)
+- 7-stage pipeline with Planner Agent (Stage 0)
+- LLM-driven config generation, adaptive replanning, post-modelling review
+- DataCleaningAgent v2.0 with 13-step cleaning pipeline and `DataCleaningConfig`
+- Anthropic Claude and OpenAI support; rule-based fallback throughout
+- Lean project structure — superseded and one-off files removed
+
+**v0.0**
+- 6-stage pipeline (Understanding → Cleaning → Features → Modelling → Evaluation → Report)
+- Standalone Stage 6 implementation with no LangChain dependency
+- JSON serialisation support and comprehensive error handling
+
+---
+
+## 🎉 Feature Highlights
+
+✅ **Plain-English Configuration** — describe your task in one sentence
+✅ **Fully Automated** — minimal user intervention required
+✅ **LLM-Enhanced** — smarter decisions at every stage with graceful fallback
+✅ **Production Ready** — robust error handling, target-column protection, constraint validation
+✅ **Comprehensive** — from raw data to business-ready report in one command
+✅ **Flexible** — works with any tabular dataset; every threshold is configurable
+✅ **Transparent** — detailed logs, per-stage JSON artifacts, and before/after quality metrics
+
+---
+
+*AutoDS — Making Data Science Accessible, Automated, and Reliable.*
