@@ -11,79 +11,79 @@
       {
         "rank": 1,
         "model_name": "lightgbm",
-        "cv_accuracy": 0.5591666666666667,
-        "cv_precision": 0.6206060606060606,
-        "cv_recall": 0.6555555555555556,
-        "cv_f1": 0.6203842940685045,
-        "cv_roc_auc": 0.6306216931216931,
-        "test_accuracy": 0.65,
-        "test_precision": 0.6666666666666666,
-        "test_recall": 0.7272727272727273,
-        "test_f1": 0.6956521739130435,
-        "test_roc_auc": 0.707070707070707
+        "cv_accuracy": 0.8602824861600172,
+        "cv_precision": 0.7716039331180681,
+        "cv_recall": 0.6652608046373123,
+        "cv_f1": 0.7144650990518466,
+        "cv_roc_auc": 0.9185709854435152,
+        "test_accuracy": 0.8537985865724381,
+        "test_precision": 0.7553191489361702,
+        "test_recall": 0.6563025210084034,
+        "test_f1": 0.7023381294964028,
+        "test_roc_auc": 0.9143896863718524
       },
       {
         "rank": 2,
-        "model_name": "xgboost",
-        "cv_accuracy": 0.6633333333333333,
-        "cv_precision": 0.758939393939394,
-        "cv_recall": 0.6555555555555556,
-        "cv_f1": 0.6783179668628586,
-        "cv_roc_auc": 0.6548941798941799,
-        "test_accuracy": 0.6,
-        "test_precision": 0.6153846153846154,
-        "test_recall": 0.7272727272727273,
-        "test_f1": 0.6666666666666666,
-        "test_roc_auc": 0.6868686868686869
+        "model_name": "logistic_regression",
+        "cv_accuracy": 0.8069909240089904,
+        "cv_precision": 0.5945533528816221,
+        "cv_recall": 0.8358896871051259,
+        "cv_f1": 0.6948263253815494,
+        "cv_roc_auc": 0.9015076661943124,
+        "test_accuracy": 0.8021201413427562,
+        "test_precision": 0.5882352941176471,
+        "test_recall": 0.8235294117647058,
+        "test_f1": 0.6862745098039216,
+        "test_roc_auc": 0.8955373821188153
       },
       {
         "rank": 3,
         "model_name": "random_forest",
-        "cv_accuracy": 0.5875,
-        "cv_precision": 0.6205555555555555,
-        "cv_recall": 0.7027777777777777,
-        "cv_f1": 0.6560371517027864,
-        "cv_roc_auc": 0.6113756613756615,
-        "test_accuracy": 0.55,
-        "test_precision": 0.5714285714285714,
-        "test_recall": 0.7272727272727273,
-        "test_f1": 0.64,
-        "test_roc_auc": 0.595959595959596
+        "cv_accuracy": 0.8418379442210151,
+        "cv_precision": 0.7328557803880518,
+        "cv_recall": 0.6268092410465764,
+        "cv_f1": 0.6756790312460668,
+        "cv_roc_auc": 0.8927564986980379,
+        "test_accuracy": 0.8325971731448764,
+        "test_precision": 0.7138613861386138,
+        "test_recall": 0.6058823529411764,
+        "test_f1": 0.6554545454545454,
+        "test_roc_auc": 0.8881343430122199
       },
       {
         "rank": 4,
         "model_name": "svm_rbf",
-        "cv_accuracy": 0.5199999999999999,
-        "cv_precision": 0.5878571428571429,
-        "cv_recall": 0.4444444444444445,
-        "cv_f1": 0.5032880844645551,
-        "cv_roc_auc": 0.533068783068783,
-        "test_accuracy": 0.55,
-        "test_precision": 0.5833333333333334,
-        "test_recall": 0.6363636363636364,
-        "test_f1": 0.6086956521739131,
-        "test_roc_auc": 0.4949494949494949
+        "cv_accuracy": 0.8019655268800578,
+        "cv_precision": 0.5867824130029262,
+        "cv_recall": 0.8358868152939408,
+        "cv_f1": 0.6894268858573328,
+        "cv_roc_auc": 0.8885078448108569,
+        "test_accuracy": 0.7961572438162544,
+        "test_precision": 0.5789473684210527,
+        "test_recall": 0.8226890756302521,
+        "test_f1": 0.6796251301631377,
+        "test_roc_auc": 0.881439723882363
       },
       {
         "rank": 5,
-        "model_name": "logistic_regression",
-        "cv_accuracy": 0.3624999999999999,
-        "cv_precision": 0.4166666666666667,
-        "cv_recall": 0.3472222222222222,
-        "cv_f1": 0.3777310924369748,
-        "cv_roc_auc": 0.3355820105820106,
-        "test_accuracy": 0.4,
-        "test_precision": 0.4285714285714285,
-        "test_recall": 0.2727272727272727,
-        "test_f1": 0.3333333333333333,
-        "test_roc_auc": 0.3939393939393939
+        "model_name": "xgboost",
+        "cv_accuracy": NaN,
+        "cv_precision": NaN,
+        "cv_recall": NaN,
+        "cv_f1": NaN,
+        "cv_roc_auc": NaN,
+        "test_accuracy": NaN,
+        "test_precision": NaN,
+        "test_recall": NaN,
+        "test_f1": NaN,
+        "test_roc_auc": NaN
       }
     ]
   },
   "best_model_selection_evidence": {
     "selected_model": "lightgbm",
     "selection_metric": "roc_auc",
-    "selection_metric_value": 0.707070707070707,
+    "selection_metric_value": 0.9143896863718524,
     "selection_rank": 1
   },
   "best_model_evaluation": {
@@ -91,52 +91,50 @@
     "metrics": {
       "rank": 1,
       "model_name": "lightgbm",
-      "cv_runtime_seconds": 0.3152,
-      "cv_accuracy": 0.5591666666666667,
-      "cv_precision": 0.6206060606060606,
-      "cv_recall": 0.6555555555555556,
-      "cv_f1": 0.6203842940685045,
-      "cv_roc_auc": 0.6306216931216931,
-      "cv_std_accuracy": 0.09046177830074606,
-      "cv_std_precision": 0.11282172647635563,
-      "cv_std_recall": 0.13704329315048902,
-      "cv_std_f1": 0.07028594553271808,
-      "cv_std_roc_auc": 0.11505047378014054,
-      "test_accuracy": 0.65,
-      "test_precision": 0.6666666666666666,
-      "test_recall": 0.7272727272727273,
-      "test_f1": 0.6956521739130435,
-      "test_roc_auc": 0.707070707070707
+      "cv_runtime_seconds": 2.5716,
+      "cv_accuracy": 0.8602824861600172,
+      "cv_precision": 0.7716039331180681,
+      "cv_recall": 0.6652608046373123,
+      "cv_f1": 0.7144650990518466,
+      "cv_roc_auc": 0.9185709854435153,
+      "cv_std_accuracy": 0.00418223798177607,
+      "cv_std_precision": 0.00793863250329378,
+      "cv_std_recall": 0.012333979675442591,
+      "cv_std_f1": 0.009842392756766264,
+      "cv_std_roc_auc": 0.004180434845800377,
+      "test_accuracy": 0.8537985865724381,
+      "test_precision": 0.7553191489361702,
+      "test_recall": 0.6563025210084034,
+      "test_f1": 0.7023381294964028,
+      "test_roc_auc": 0.9143896863718524,
+      "training_error": NaN
     },
     "diagnostics": {
       "best_model_name": "lightgbm",
-      "train_rows": 77,
-      "test_rows": 20,
-      "data_quality_warnings": [
-        "Training sample size is very small for academic performance claims; treat current metrics as smoke-test evidence only.",
-        "Test sample size is too small for stable generalisation claims; prefer a larger held-out test set before reporting benchmark conclusions."
-      ],
+      "train_rows": 18108,
+      "test_rows": 4528,
+      "data_quality_warnings": [],
       "confusion_matrix": [
         [
-          5,
-          4
+          3085,
+          253
         ],
         [
-          3,
-          8
+          409,
+          781
         ]
       ],
       "labels": [
-        0,
-        1
+        "<=50k",
+        ">50k"
       ],
       "class_distribution_test": {
-        "1": 11,
-        "0": 9
+        "<=50k": 3338,
+        ">50k": 1190
       }
     },
     "prediction_output_available": true,
-    "prediction_row_count": 20,
+    "prediction_row_count": 4528,
     "prediction_columns": [
       "test_predictions",
       "test_truth",
@@ -145,21 +143,46 @@
     "feature_importance_available": true,
     "feature_importance_top_rows": [
       {
-        "feature_name": "purchase_history",
-        "importance": 233.0
+        "feature_name": "3",
+        "importance": 2054.0
       },
       {
-        "feature_name": "age",
-        "importance": 183.0
+        "feature_name": "1",
+        "importance": 1591.0
       },
       {
-        "feature_name": "credit_score",
-        "importance": 183.0
+        "feature_name": "11",
+        "importance": 733.0
+      },
+      {
+        "feature_name": "5",
+        "importance": 671.0
+      },
+      {
+        "feature_name": "12",
+        "importance": 600.0
+      },
+      {
+        "feature_name": "13",
+        "importance": 523.0
+      },
+      {
+        "feature_name": "6_married_civ_spouse",
+        "importance": 160.0
+      },
+      {
+        "feature_name": "7_exec_managerial",
+        "importance": 150.0
+      },
+      {
+        "feature_name": "7_adm_clerical",
+        "importance": 107.0
+      },
+      {
+        "feature_name": "7_prof_specialty",
+        "importance": 106.0
       }
     ]
   },
-  "limitations": [
-    "Training sample size is very small for academic performance claims; treat current metrics as smoke-test evidence only.",
-    "Test sample size is too small for stable generalisation claims; prefer a larger held-out test set before reporting benchmark conclusions."
-  ]
+  "limitations": []
 }

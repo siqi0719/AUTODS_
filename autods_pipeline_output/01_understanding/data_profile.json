@@ -1,101 +1,208 @@
 {
   "dataset_name": "AutoDS_Dataset",
-  "data_path": "_example_data_temp.csv",
   "shape": {
-    "rows": 100,
-    "columns": 6
+    "rows": 32561,
+    "columns": 15
   },
   "columns": [
-    "customer_id",
-    "age",
-    "income",
-    "credit_score",
-    "purchase_history",
-    "target"
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+    "10",
+    "11",
+    "12",
+    "13",
+    "14",
+    "15"
   ],
   "dtypes": {
-    "customer_id": "int64",
-    "age": "float64",
-    "income": "int64",
-    "credit_score": "int64",
-    "purchase_history": "int64",
-    "target": "int64"
+    "1": "int64",
+    "2": "object",
+    "3": "int64",
+    "4": "object",
+    "5": "int64",
+    "6": "object",
+    "7": "object",
+    "8": "object",
+    "9": "object",
+    "10": "object",
+    "11": "int64",
+    "12": "int64",
+    "13": "int64",
+    "14": "object",
+    "15": "object"
   },
   "feature_types": {
     "numeric_columns": [
-      "customer_id",
-      "age",
-      "income",
-      "credit_score",
-      "purchase_history",
-      "target"
+      "1",
+      "3",
+      "5",
+      "11",
+      "12",
+      "13"
     ],
-    "categorical_columns": [],
+    "categorical_columns": [
+      "2",
+      "4",
+      "6",
+      "7",
+      "8",
+      "9",
+      "10",
+      "14",
+      "15"
+    ],
     "boolean_columns": [],
     "datetime_columns": []
   },
   "numeric_summary_statistics": {
-    "customer_id": {
-      "count": 100,
-      "mean": 50.5,
-      "std": 29.011491975882016,
+    "1": {
+      "count": 32561,
+      "mean": 38.58164675532078,
+      "std": 13.640432553581341,
+      "min": 17.0,
+      "p25": 28.0,
+      "median": 37.0,
+      "p75": 48.0,
+      "max": 90.0
+    },
+    "3": {
+      "count": 32561,
+      "mean": 189778.36651208502,
+      "std": 105549.97769702224,
+      "min": 12285.0,
+      "p25": 117827.0,
+      "median": 178356.0,
+      "p75": 237051.0,
+      "max": 1484705.0
+    },
+    "5": {
+      "count": 32561,
+      "mean": 10.0806793403151,
+      "std": 2.5727203320673877,
       "min": 1.0,
-      "p25": 25.75,
-      "median": 50.5,
-      "p75": 75.25,
-      "max": 100.0
+      "p25": 9.0,
+      "median": 10.0,
+      "p75": 12.0,
+      "max": 16.0
     },
-    "age": {
-      "count": 95,
-      "mean": 44.136842105263156,
-      "std": 14.213875844306408,
-      "min": 20.0,
-      "p25": 33.0,
-      "median": 43.0,
-      "p75": 57.5,
-      "max": 69.0
-    },
-    "income": {
-      "count": 100,
-      "mean": 118924.88,
-      "std": 159574.20595436232,
-      "min": 30206.0,
-      "p25": 60421.25,
-      "median": 93689.5,
-      "p75": 123820.25,
-      "max": 999999.0
-    },
-    "credit_score": {
-      "count": 100,
-      "mean": 568.88,
-      "std": 147.23610393864104,
-      "min": 301.0,
-      "p25": 445.25,
-      "median": 555.5,
-      "p75": 700.5,
-      "max": 810.0
-    },
-    "purchase_history": {
-      "count": 100,
-      "mean": 49.39,
-      "std": 28.568505297783698,
-      "min": 1.0,
-      "p25": 24.75,
-      "median": 47.0,
-      "p75": 66.0,
-      "max": 98.0
-    },
-    "target": {
-      "count": 100,
-      "mean": 0.54,
-      "std": 0.5009082659620331,
+    "11": {
+      "count": 32561,
+      "mean": 1077.6488437087312,
+      "std": 7385.292084840338,
       "min": 0.0,
       "p25": 0.0,
-      "median": 1.0,
-      "p75": 1.0,
-      "max": 1.0
+      "median": 0.0,
+      "p75": 0.0,
+      "max": 99999.0
+    },
+    "12": {
+      "count": 32561,
+      "mean": 87.303829734959,
+      "std": 402.9602186489998,
+      "min": 0.0,
+      "p25": 0.0,
+      "median": 0.0,
+      "p75": 0.0,
+      "max": 4356.0
+    },
+    "13": {
+      "count": 32561,
+      "mean": 40.437455852092995,
+      "std": 12.347428681731843,
+      "min": 1.0,
+      "p25": 40.0,
+      "median": 40.0,
+      "p75": 45.0,
+      "max": 99.0
     }
   },
-  "categorical_value_preview": {},
-  "memory_usage_bytes": 4932
+  "categorical_value_preview": {
+    "2": {
+      " Private": 22696,
+      " Self-emp-not-inc": 2541,
+      " Local-gov": 2093,
+      " ?": 1836,
+      " State-gov": 1298,
+      " Self-emp-inc": 1116,
+      " Federal-gov": 960,
+      " Without-pay": 14,
+      " Never-worked": 7
+    },
+    "4": {
+      " HS-grad": 10501,
+      " Some-college": 7291,
+      " Bachelors": 5355,
+      " Masters": 1723,
+      " Assoc-voc": 1382,
+      " 11th": 1175,
+      " Assoc-acdm": 1067,
+      " 10th": 933,
+      " 7th-8th": 646,
+      " Prof-school": 576
+    },
+    "6": {
+      " Married-civ-spouse": 14976,
+      " Never-married": 10683,
+      " Divorced": 4443,
+      " Separated": 1025,
+      " Widowed": 993,
+      " Married-spouse-absent": 418,
+      " Married-AF-spouse": 23
+    },
+    "7": {
+      " Prof-specialty": 4140,
+      " Craft-repair": 4099,
+      " Exec-managerial": 4066,
+      " Adm-clerical": 3770,
+      " Sales": 3650,
+      " Other-service": 3295,
+      " Machine-op-inspct": 2002,
+      " ?": 1843,
+      " Transport-moving": 1597,
+      " Handlers-cleaners": 1370
+    },
+    "8": {
+      " Husband": 13193,
+      " Not-in-family": 8305,
+      " Own-child": 5068,
+      " Unmarried": 3446,
+      " Wife": 1568,
+      " Other-relative": 981
+    },
+    "9": {
+      " White": 27816,
+      " Black": 3124,
+      " Asian-Pac-Islander": 1039,
+      " Amer-Indian-Eskimo": 311,
+      " Other": 271
+    },
+    "10": {
+      " Male": 21790,
+      " Female": 10771
+    },
+    "14": {
+      " United-States": 29170,
+      " Mexico": 643,
+      " ?": 583,
+      " Philippines": 198,
+      " Germany": 137,
+      " Canada": 121,
+      " Puerto-Rico": 114,
+      " El-Salvador": 106,
+      " India": 100,
+      " Cuba": 95
+    },
+    "15": {
+      " <=50K": 24720,
+      " >50K": 7841
+    }
+  },
+  "memory_usage_bytes": 18797188
 }

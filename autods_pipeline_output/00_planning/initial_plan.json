@@ -1,0 +1,19 @@
+{
+  "target_column": null,
+  "problem_type": "classification",
+  "primary_metric": "roc_auc",
+  "feature_config": {
+    "task_description": "AutoDS automated feature engineering",
+    "use_llm_planner": false
+  },
+  "modelling_config": {
+    "candidate_model_names": [
+      "LogisticRegression",
+      "RandomForest",
+      "GradientBoosting"
+    ],
+    "cv_folds": 5,
+    "primary_metric": "roc_auc"
+  },
+  "reasoning": "Rule-based fallback (no LLM available)."
+}

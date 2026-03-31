@@ -12,24 +12,23 @@
   ],
   "candidate_models": [
     "lightgbm",
-    "xgboost",
+    "logistic_regression",
     "random_forest",
     "svm_rbf",
-    "logistic_regression"
+    "xgboost"
   ],
   "best_model_name": "lightgbm",
-  "train_rows": 77,
-  "train_feature_count": 3,
-  "test_rows": 20,
-  "llm_plan_status": "disabled_or_unavailable",
+  "train_rows": 18108,
+  "train_feature_count": 63,
+  "test_rows": 4528,
+  "llm_plan_status": "not_configured",
   "feature_metadata_available": false,
   "target_distribution": {
-    "1": 43,
-    "0": 34
+    "<=50k": 13349,
+    ">50k": 4759
   },
   "test_target_available": true,
-  "limitations": [
-    "Training sample size is very small for academic performance claims; treat current metrics as smoke-test evidence only.",
-    "Test sample size is too small for stable generalisation claims; prefer a larger held-out test set before reporting benchmark conclusions."
-  ]
+  "limitations": [],
+  "tuning_enabled": true,
+  "tuning_models_tuned": 0
 }

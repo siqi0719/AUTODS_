@@ -4,7 +4,7 @@
 
 # Technical Report
 
-Generated: 2026-03-30 19:03:07
+Generated: 2026-03-31 16:59:43
 
 ## 1. Project Overview
 
@@ -102,7 +102,7 @@ Generated: 2026-03-30 19:03:07
 
 ---
 
-**Report Generation Time**: 2026-03-30T19:03:07.598174
+**Report Generation Time**: 2026-03-31T16:59:43.528750
 
 
 ---
@@ -111,7 +111,7 @@ Generated: 2026-03-30 19:03:07
 
 # Business Report
 
-Generated: 2026-03-30 19:03:07
+Generated: 2026-03-31 16:59:43
 
 ## Executive Summary
 
@@ -128,9 +128,9 @@ This report summarizes the outcomes of an end-to-end data science project, inclu
 
 ## Project Background
 
-**Business Objective**: Automated end-to-end data science pipeline
+**Business Objective**: This is the UCI Adult (Census Income) dataset extracted from the 1994 US Census database. The goal is to predict whether a person's annual income exceeds $50,000 (binary classification). The target column is 'income' (values: '>50K' or '<=50K'). Input features include demographic and employment information: age, workclass, fnlwgt (census sampling weight), education, education-num, marital-status, occupation, relationship, race, sex, capital-gain, capital-loss, hours-per-week, and native-country. The dataset has approximately 48,842 instances with a mix of continuous and categorical features. Some records contain unknown values denoted by '?' — these should be treated as a separate category for categorical features rather than dropped. The class distribution is heavily imbalanced: approximately 24% earn >50K and 76% earn <=50K, so ROC-AUC and F1-score are preferred over accuracy as primary metrics. The positive class is '>50K'. Interpretability is important as this is a socioeconomic prediction task — Logistic Regression, Decision Tree, and Random Forest are preferred. Note that 'fnlwgt' is a census sampling weight, not a predictive demographic feature, and may be excluded or treated with caution.
 
-**Key Business Problem**: Automated Data Science
+**Key Business Problem**: This is the UCI Adult (Census Income) dataset extracted from the 1994 US Census database. The goal is to predict whether a person's annual income exceeds $50,000 (binary classification). The target column is 'income' (values: '>50K' or '<=50K'). Input features include demographic and employment information: age, workclass, fnlwgt (census sampling weight), education, education-num, marital-status, occupation, relationship, race, sex, capital-gain, capital-loss, hours-per-week, and native-country. The dataset has approximately 48,842 instances with a mix of continuous and categorical features. Some records contain unknown values denoted by '?' — these should be treated as a separate category for categorical features rather than dropped. The class distribution is heavily imbalanced: approximately 24% earn >50K and 76% earn <=50K, so ROC-AUC and F1-score are preferred over accuracy as primary metrics. The positive class is '>50K'. Interpretability is important as this is a socioeconomic prediction task — Logistic Regression, Decision Tree, and Random Forest are preferred. Note that 'fnlwgt' is a census sampling weight, not a predictive demographic feature, and may be excluded or treated with caution.
 
 **Target Audience**: Data Science Team
 
@@ -221,4 +221,4 @@ Model Evaluation → Model Deployment
 
 ---
 
-**Report Generation Time**: 2026-03-30T19:03:07.598174
+**Report Generation Time**: 2026-03-31T16:59:43.528750

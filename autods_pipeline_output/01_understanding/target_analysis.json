@@ -1,15 +1,16 @@
 {
-  "target_column": "target",
+  "target_column": "15",
   "problem_type": "classification",
   "inferred_problem_type": "classification",
   "missing_count": 0,
   "missing_ratio": 0.0,
   "n_unique": 2,
+  "status": "success",
   "class_distribution": {
-    "1": 54,
-    "0": 46
+    " <=50K": 24720,
+    " >50K": 7841
   },
-  "imbalance_ratio_max_over_min": 1.173913043478261,
+  "imbalance_ratio_max_over_min": 3.152659099604642,
   "is_binary": true,
   "recommended_primary_metrics": [
     "f1",

@@ -1,87 +1,99 @@
 {
   "missing_values": {
     "missing_count_by_column": {
-      "customer_id": 0,
-      "age": 5,
-      "income": 0,
-      "credit_score": 0,
-      "purchase_history": 0,
-      "target": 0
+      "1": 0,
+      "2": 0,
+      "3": 0,
+      "4": 0,
+      "5": 0,
+      "6": 0,
+      "7": 0,
+      "8": 0,
+      "9": 0,
+      "10": 0,
+      "11": 0,
+      "12": 0,
+      "13": 0,
+      "14": 0,
+      "15": 0
     },
     "missing_ratio_by_column": {
-      "customer_id": 0.0,
-      "age": 0.05,
-      "income": 0.0,
-      "credit_score": 0.0,
-      "purchase_history": 0.0,
-      "target": 0.0
+      "1": 0.0,
+      "2": 0.0,
+      "3": 0.0,
+      "4": 0.0,
+      "5": 0.0,
+      "6": 0.0,
+      "7": 0.0,
+      "8": 0.0,
+      "9": 0.0,
+      "10": 0.0,
+      "11": 0.0,
+      "12": 0.0,
+      "13": 0.0,
+      "14": 0.0,
+      "15": 0.0
     }
   },
   "duplicate_rows": {
-    "count": 0,
-    "ratio": 0.0
+    "count": 24,
+    "ratio": 0.0007370780995669666
   },
   "constant_columns": [],
   "all_missing_columns": [],
   "high_missing_columns": [],
-  "suspected_identifier_columns": [
-    "customer_id",
-    "income"
+  "suspected_identifier_columns": [],
+  "high_cardinality_columns": [
+    "14"
   ],
-  "high_cardinality_columns": [],
   "numeric_outlier_report": {
-    "customer_id": {
+    "1": {
       "status": "completed",
-      "lower_bound": -48.5,
-      "upper_bound": 149.5,
+      "lower_bound": -2.0,
+      "upper_bound": 78.0,
+      "outlier_count": 143,
+      "outlier_ratio": 0.004391757009919842
+    },
+    "3": {
+      "status": "completed",
+      "lower_bound": -61009.0,
+      "upper_bound": 415887.0,
+      "outlier_count": 992,
+      "outlier_ratio": 0.030465894782101287
+    },
+    "5": {
+      "status": "completed",
+      "lower_bound": 4.5,
+      "upper_bound": 16.5,
+      "outlier_count": 1198,
+      "outlier_ratio": 0.036792481803384416
+    },
+    "11": {
+      "status": "skipped_zero_iqr",
       "outlier_count": 0,
       "outlier_ratio": 0.0
     },
-    "age": {
-      "status": "completed",
-      "lower_bound": -3.75,
-      "upper_bound": 94.25,
+    "12": {
+      "status": "skipped_zero_iqr",
       "outlier_count": 0,
       "outlier_ratio": 0.0
     },
-    "income": {
+    "13": {
       "status": "completed",
-      "lower_bound": -34677.25,
-      "upper_bound": 218918.75,
-      "outlier_count": 3,
-      "outlier_ratio": 0.03
-    },
-    "credit_score": {
-      "status": "completed",
-      "lower_bound": 62.375,
-      "upper_bound": 1083.375,
-      "outlier_count": 0,
-      "outlier_ratio": 0.0
-    },
-    "purchase_history": {
-      "status": "completed",
-      "lower_bound": -37.125,
-      "upper_bound": 127.875,
-      "outlier_count": 0,
-      "outlier_ratio": 0.0
-    },
-    "target": {
-      "status": "completed",
-      "lower_bound": -1.5,
-      "upper_bound": 2.5,
-      "outlier_count": 0,
-      "outlier_ratio": 0.0
+      "lower_bound": 32.5,
+      "upper_bound": 52.5,
+      "outlier_count": 9008,
+      "outlier_ratio": 0.27664998003746816
     }
   },
   "recommended_actions": {
     "drop_or_review_constant_columns": [],
     "drop_or_review_all_missing_columns": [],
     "review_high_missing_columns": [],
-    "review_identifier_columns_for_leakage": [
-      "customer_id",
-      "income"
+    "review_identifier_columns_for_leakage": [],
+    "review_high_cardinality_columns_for_encoding": [
+      "14"
     ],
-    "review_high_cardinality_columns_for_encoding": [],
     "review_possible_target_leakage_columns": []
   }
 }

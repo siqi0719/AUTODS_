@@ -1,0 +1,11 @@
+{
+  "key_findings": [
+    "Best model: lightgbm",
+    "Evaluated N/A candidate model(s)"
+  ],
+  "recommendations": [
+    "Monitor model performance on production data.",
+    "Retrain periodically as new data arrives."
+  ],
+  "review_text": "The modelling stage evaluated N/A candidate model(s). lightgbm achieved the best performance on the roc_auc metric. The model is ready for domain expert validation before deployment."
+}

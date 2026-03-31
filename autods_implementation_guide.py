@@ -24,6 +24,7 @@ class PipelineConfig:
     def __init__(self):
         self.project_root = Path.cwd()
         self.data_path = None
+        self.csv_sep = ","               # CSV separator (use ";" for Bank Marketing, etc.)
         self.target_column = None
         self.problem_type = "classification"
         self.random_state = 42
@@ -124,6 +125,7 @@ class DataSciencePipeline:
 
             # Load a small sample so the LLM can see the schema
             data_sample = pd.read_csv(self.config.data_path,
+                                      sep=self.config.csv_sep,
                                       nrows=planner_config.data_sample_rows)
 
             plan = self._planner.plan(
@@ -175,7 +177,7 @@ class DataSciencePipeline:
             
             # Load raw data
             print(f"\n📖 Loading raw data from: {self.config.data_path}")
-            raw_data = pd.read_csv(self.config.data_path)
+            raw_data = pd.read_csv(self.config.data_path, sep=self.config.csv_sep)
             print(f"✓ Raw data loaded: {raw_data.shape}")
             self.data_lineage.append({
                 'stage': 1,
@@ -186,18 +188,17 @@ class DataSciencePipeline:
             
             # Configure agent
             config = UnderstandingConfig(
-                data_path=str(self.config.data_path),
                 output_dir=str(self.config.stage_dirs[1]),
                 target_column=self.config.target_column,
                 problem_type=self.config.problem_type,
                 dataset_name="AutoDS_Dataset",
                 random_state=self.config.random_state,
             )
-            
+
             # Run understanding agent
             print(f"\n🔍 Running DataUnderstandingAgent...")
             agent = DataUnderstandingAgent(config)
-            result = agent.run()
+            result = agent.run(raw_data)
             
             # Store results
             self.stage_outputs[1] = {
@@ -458,16 +459,36 @@ class DataSciencePipeline:
             X_test = self.stage_outputs[3]['X_test']
             y_train = self.stage_outputs[3]['y_train']
             y_test = self.stage_outputs[3]['y_test']
-            
+
+            # Convert string target labels (e.g. '0'/'1' from boolean unification)
+            # to integers so that XGBoost and other estimators accept them.
+            import pandas as pd
+            y_train = pd.to_numeric(y_train, errors='ignore')
+            if y_test is not None:
+                y_test = pd.to_numeric(y_test, errors='ignore')
+
+            # New ModellingAgent.run() takes the full dataset and splits internally.
+            # Recombine Stage 3 splits so the agent can do its own stratified split.
+            X_all = pd.concat([X_train, X_test], axis=0).reset_index(drop=True)
+            y_all = pd.concat([y_train, y_test], axis=0).reset_index(drop=True)
+            test_size = len(X_test) / (len(X_train) + len(X_test))
+
             print(f"\n🤖 Input data (from Stage 3):")
             print(f"  - Training set: {X_train.shape}")
             print(f"  - Test set: {X_test.shape}")
-            
+
             # Import agent
             from modelling_agent import ModellingConfig, ModellingAgent
-            
+
             # Pull planner overrides (if any)
             mc_cfg = self._planner_plan.get("modelling_config", {})
+
+            # Validate planner-suggested model names against what is actually available
+            _VALID_MODELS = {
+                "logistic_regression", "random_forest", "svm_rbf", "xgboost", "lightgbm"
+            }
+            planner_names = mc_cfg.get("candidate_model_names") or []
+            validated_names = [n for n in planner_names if n in _VALID_MODELS] or None
 
             # Configure agent
             config = ModellingConfig(
@@ -479,33 +500,28 @@ class DataSciencePipeline:
                     self._planner_plan.get("primary_metric"),
                 ),
                 cv_folds=mc_cfg.get("cv_folds", 5),
-                candidate_model_names=mc_cfg.get("candidate_model_names") or None,
+                candidate_model_names=validated_names,
                 output_dir=str(self.config.stage_dirs[4]),
                 random_state=self.config.random_state,
             )
-            
+
             # Create and run agent
             agent = ModellingAgent(config)
             print(f"\n⏳ Executing ModellingAgent...")
-            # ← KEY: Using outputs from Stage 3 as input
-            result = agent.run(
-                X_train=X_train,
-                X_test=X_test,
-                y_train=y_train,
-                y_test=y_test
-            )
-            
+            result = agent.run(X=X_all, y=y_all, test_size=test_size)
+
+            model_count = len(result.get('leaderboard', pd.DataFrame()))
             print(f"✓ Modelling complete")
-            print(f"  - Models trained: {result.get('model_count', 'N/A')}")
+            print(f"  - Models trained: {model_count}")
             print(f"  - Best model: {result.get('best_model_name', 'N/A')}")
             print(f"  - Output directory: {self.config.stage_dirs[4]}")
-            
+
             # Track data lineage
             self.data_lineage.append({
                 'stage': 4,
                 'training_shape': X_train.shape,
                 'test_shape': X_test.shape,
-                'models_trained': result.get('model_count'),
+                'models_trained': model_count,
                 'best_model': result.get('best_model_name'),
             })
             

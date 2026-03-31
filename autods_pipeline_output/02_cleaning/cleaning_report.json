@@ -1,64 +1,68 @@
 {
   "metadata": {
     "agent_name": "DataCleaner",
-    "timestamp": "2026-03-31T01:50:46.301392",
-    "version": "1.0"
+    "timestamp": "2026-03-31T16:59:48.042057",
+    "version": "2.0"
   },
   "input_data": {
-    "shape": {
-      "rows": 100,
-      "columns": 6
-    },
-    "total_cells": 600
+    "rows": 32561,
+    "columns": 15
   },
   "output_data": {
-    "shape": {
-      "rows": 97,
-      "columns": 6
-    },
-    "total_cells": 582
+    "rows": 22636,
+    "columns": 15
   },
   "cleaning_summary": {
-    "rows_removed": 3,
-    "rows_retained": 97,
-    "rows_removed_percentage": 3.0,
-    "data_retention_percentage": 97.0
+    "rows_removed": 9925,
+    "columns_dropped": [],
+    "columns_dropped_cnt": 0,
+    "data_retention_pct": 69.52
   },
   "column_classification": {
+    "id_columns": [],
     "numeric_columns": [
-      "customer_id",
-      "age",
-      "income",
-      "credit_score",
-      "purchase_history",
-      "target"
+      "1",
+      "5",
+      "11",
+      "12",
+      "13"
     ],
-    "categorical_columns": [],
-    "special_format_columns": [],
-    "column_type_summary": {
-      "numeric_count": 6,
-      "categorical_count": 0,
-      "special_format_count": 0
-    }
+    "categorical_columns": [
+      "2",
+      "4",
+      "6",
+      "7",
+      "8",
+      "9",
+      "10",
+      "14",
+      "15"
+    ],
+    "special_format_columns": [
+      "3"
+    ],
+    "datetime_columns": [],
+    "boolean_columns": [],
+    "constant_columns": [],
+    "dropped_columns": []
   },
   "data_quality_metrics": {
-    "original": {
-      "completeness": 100.0,
-      "duplicates": 0,
-      "null_values": 0,
-      "null_percentage": 0.0
+    "before_cleaning": {
+      "completeness_pct": 100.0,
+      "null_count": 0,
+      "null_pct": 0.0,
+      "duplicate_rows": 24
     },
-    "cleaned": {
-      "completeness": 100.0,
-      "duplicates": 0,
-      "null_values": 0,
-      "null_percentage": 0.0
+    "after_cleaning": {
+      "completeness_pct": 100.0,
+      "null_count": 0,
+      "null_pct": 0.0,
+      "duplicate_rows": 0
     }
   },
   "cleaning_operations": {
-    "duplicates_removed": 0,
-    "missing_values_handled": true,
-    "anomalies_removed": "IQR method applied to numeric columns",
-    "special_formats_preserved": []
+    "anomaly_strategy": "remove",
+    "iqr_multiplier": 1.5,
+    "llm_enabled": false
   }
 }

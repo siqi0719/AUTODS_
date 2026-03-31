@@ -1,9 +1,9 @@
 {
   "config": {
-    "target_column": "target",
+    "target_column": "15",
     "problem_type": "classification",
     "task_description": "AutoDS Modelling",
-    "primary_metric": null,
+    "primary_metric": "roc_auc",
     "cv_folds": 5,
     "random_state": 42,
     "save_artifacts": true,
@@ -20,7 +20,7 @@
     ]
   },
   "llm_plan": {
-    "planner_status": "disabled_or_unavailable",
+    "planner_status": "not_configured",
     "recommended_models": [],
     "reason": "LLM is not configured. Falling back to deterministic candidate models."
   },
@@ -51,9 +51,18 @@
     "test_precision",
     "test_recall",
     "test_f1",
-    "test_roc_auc"
+    "test_roc_auc",
+    "training_error"
   ],
   "diagnostics_available": true,
   "feature_importance_available": true,
-  "upstream_feature_metadata": null
+  "upstream_feature_metadata": null,
+  "tuning_config": {
+    "enable_tuning": true,
+    "n_top_models_to_tune": 3,
+    "early_stopping_rounds": 10,
+    "tuning_intensity": "auto",
+    "use_llm_stage2_selection": true
+  },
+  "tuning_enabled": true
 }

@@ -1,27 +1,24 @@
 {
   "best_model_name": "lightgbm",
-  "train_rows": 77,
-  "test_rows": 20,
-  "data_quality_warnings": [
-    "Training sample size is very small for academic performance claims; treat current metrics as smoke-test evidence only.",
-    "Test sample size is too small for stable generalisation claims; prefer a larger held-out test set before reporting benchmark conclusions."
-  ],
+  "train_rows": 18108,
+  "test_rows": 4528,
+  "data_quality_warnings": [],
   "confusion_matrix": [
     [
-      5,
-      4
+      3085,
+      253
     ],
     [
-      3,
-      8
+      409,
+      781
     ]
   ],
   "labels": [
-    0,
-    1
+    "<=50k",
+    ">50k"
   ],
   "class_distribution_test": {
-    "1": 11,
-    "0": 9
+    "<=50k": 3338,
+    ">50k": 1190
   }
 }
