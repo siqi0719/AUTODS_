@@ -667,49 +667,121 @@ class DataSciencePipeline:
         
         try:
             print(f"\n⏳ Executing ReportGenerator...")
-            
-            # 使用独立的报告生成器，不依赖 LangChain
-            print("  [*] using independent report generator...")
-            
-            # 导入独立实现（不导入旧的 multi_agent_report_generator）
-            import sys
-            # 阻止导入旧的模块
-            if 'multi_agent_report_generator' in sys.modules:
-                del sys.modules['multi_agent_report_generator']
-            
-            from multi_agent_report_generator_standalone import (
-                ReportGenerator,
-                ReportGeneratorConfig
+
+            from multi_agent_report_generator import (
+                MultiAgentReportGenerator,
+                ReportGeneratorConfig,
             )
-            
-            # 配置
-            config = ReportGeneratorConfig(
-                output_dir=str(self.config.stage_dirs[6]),
-            )
-            
-            # 创建和运行
-            agent = ReportGenerator(config)
-            
-            # 生成报告 JSON
-            print("\n  [*] 准备报告 JSON...")
-            
+
             import pandas as pd
             import json
-            
+
+            # Configure
+            report_config = ReportGeneratorConfig(
+                output_dir=str(self.config.stage_dirs[6]),
+            )
+            agent = MultiAgentReportGenerator(config=report_config)
+
+            # Build report input dict mapped to the normalized schema expected by
+            # MultiAgentReportGenerator (meta/data_understanding/data_cleaning/
+            # feature_engineering/modeling/evaluation/business_context).
+            print("\n  [*] preparing report data...")
             report_json_path = self.config.stage_dirs[6] / "pipeline_report_input.json"
-            
-            # 构建完整的报告数据
+
+            # ── Pull raw stage outputs ────────────────────────────────────────
+            raw_data      = self.stage_outputs.get(1, {}).get('raw_data')
+            understanding = self.stage_outputs.get(1, {}).get('understanding_result', {})
+            cleaned_data  = self.stage_outputs.get(2, {}).get('cleaned_data')
+            cleaning_rpt  = self.stage_outputs.get(2, {}).get('cleaning_report', {})
+            feat_summary  = self.stage_outputs.get(3, {}).get('feature_summary', {})
+            mod_result    = self.stage_outputs.get(4, {}).get('modelling_result', {})
+            eval_result   = self.stage_outputs.get(5, {}).get('evaluation_result', {})
+
+            # ── Helpers ───────────────────────────────────────────────────────
+            leaderboard_df = mod_result.get('leaderboard', pd.DataFrame())
+            leaderboard_records = (
+                leaderboard_df.to_dict(orient='records')
+                if isinstance(leaderboard_df, pd.DataFrame) else []
+            )
+            best_metrics = mod_result.get('best_model_metrics', {})
+            if not isinstance(best_metrics, dict):
+                best_metrics = {}
+
+            fi_df = mod_result.get('best_model_feature_importance', pd.DataFrame())
+            if isinstance(fi_df, pd.DataFrame) and not fi_df.empty:
+                fi_records = fi_df.to_dict(orient='records')
+            else:
+                fi_records = []
+
+            primary_metric = (
+                mod_result.get('primary_metric')
+                or eval_result.get('primary_metric')
+                or 'roc_auc'
+            )
+            primary_score = best_metrics.get(f'test_{primary_metric}') or best_metrics.get(primary_metric)
+
+            # models_compared: list of dicts with name + metrics from leaderboard
+            models_compared = []
+            for i, row in enumerate(leaderboard_records, start=1):
+                models_compared.append({
+                    "name": row.get('model_name', f'model_{i}'),
+                    "rank": i,
+                    **{k: v for k, v in row.items() if k != 'model_name'},
+                })
+
+            # ── Build normalized schema ───────────────────────────────────────
             report_data = {
                 "meta": {
                     "project_name": "AutoDS Pipeline",
-                    "dataset_name": "Processed Dataset",
+                    "dataset_name": str(self.config.data_path),
+                    "target_variable": self.config.target_column,
+                    "task_type": self.config.problem_type,
                     "timestamp": str(pd.Timestamp.now()),
+                    "models_evaluated": len(leaderboard_records),
                 },
-                "data_understanding": self._make_json_serializable(self.stage_outputs.get(1, {}).get('understanding_result', {})),
-                "data_cleaning": self._make_json_serializable(self.stage_outputs.get(2, {}).get('cleaning_result', {})),
-                "feature_engineering": self._make_json_serializable(self.stage_outputs.get(3, {}).get('feature_summary', {})),
-                "modeling": self._make_json_serializable(self.stage_outputs.get(4, {}).get('modelling_result', {})),
-                "evaluation": self._make_json_serializable(self.stage_outputs.get(5, {}).get('evaluation_result', {})),
+                "data_understanding": {
+                    "n_rows": int(raw_data.shape[0]) if raw_data is not None else None,
+                    "n_cols": int(raw_data.shape[1]) if raw_data is not None else None,
+                    "n_rows_after_cleaning": int(cleaned_data.shape[0]) if cleaned_data is not None else None,
+                    "class_imbalance_ratio": None,
+                    "key_insights": [],
+                    "missing_values_summary": {},
+                },
+                "data_cleaning": {
+                    "operations_performed": [],
+                    "data_quality_score": None,
+                    "quality_notes": self._make_json_serializable(cleaning_rpt),
+                },
+                "feature_engineering": {
+                    "features_created": feat_summary.get('used_columns', []),
+                    "features_dropped": feat_summary.get('dropped_columns', []),
+                    "encoding_applied": {},
+                    "feature_importances": fi_records,
+                    "key_insights": [],
+                    "final_feature_count": feat_summary.get('final_feature_count'),
+                },
+                "modeling": {
+                    "best_model": {
+                        "name": mod_result.get('best_model_name', 'N/A'),
+                        "params": {},
+                        "training_time_seconds": None,
+                        "optimization_method": None,
+                    },
+                    "models_compared": models_compared,
+                    "selection_reason": (
+                        f"Highest {primary_metric} score on held-out test set."
+                    ),
+                },
+                "evaluation": {
+                    "primary_metric": primary_metric,
+                    "primary_score": primary_score,
+                    "metrics": {k: v for k, v in best_metrics.items() if isinstance(v, (int, float))},
+                    "confusion_matrix": {},
+                    "cv_scores": [],
+                    "cv_mean": None,
+                    "cv_std": None,
+                    "key_insights": [],
+                },
                 "business_context": {
                     "use_case": self.config.business_description or "Automated Data Science",
                     "industry": "Technology",
@@ -721,31 +793,33 @@ class DataSciencePipeline:
                 ),
                 "planner_plan": self._make_json_serializable(self._planner_plan),
             }
-            
-            # 保存 JSON
+
+            # Save input JSON for reference
             with open(report_json_path, 'w', encoding='utf-8') as f:
                 json.dump(report_data, f, indent=2, ensure_ascii=False, default=str)
-            
-            print(f"  [✓] JSON generated: {report_json_path}")
-            
-            # 调用报告生成
+            print(f"  [✓] input JSON saved: {report_json_path}")
+
+            # Run report generator — pass dict directly
             print("  [*] generating report...")
-            result = agent.run(str(report_json_path))
-            
-            if result:
+            result = agent.run(report_data)
+
+            if result.get('status') == 'success':
                 print(f"✓ Report generation complete")
-                print(f"  - Markdown Report: {self.config.stage_dirs[6]}/report.md")
-                print(f"  - JSON Report: {self.config.stage_dirs[6]}/report.json")
+                print(f"  - Mode: {result.get('generation_mode', 'N/A')}")
+                saved = result.get('saved_paths') or {}
+                for label, path in saved.items():
+                    print(f"  - {label}: {path}")
             else:
-                print("❌ Report generation failed")
-                raise Exception("Report generation failed")
-            
+                err = result.get('error', 'unknown error')
+                print(f"❌ Report generation failed: {err}")
+                raise Exception(f"Report generation failed: {err}")
+
             # Store results
             self.stage_outputs[6] = {
                 'final_report': result,
                 'agent': agent,
             }
-            
+
             return result
             
         except Exception as e:
