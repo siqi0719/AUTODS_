@@ -94,8 +94,10 @@ class DataSciencePipeline:
             raise ValueError("data_path must be specified")
         if not Path(self.config.data_path).exists():
             raise FileNotFoundError(f"Data file not found: {self.config.data_path}")
-        if not self.config.target_column:
-            raise ValueError("target_column must be specified")
+        # target_column can be left None when use_planner=True — the Planner
+        # will infer and set it during Stage 0.
+        if not self.config.target_column and not self.config.use_planner:
+            raise ValueError("target_column must be specified (or set use_planner=True)")
         
     def _setup_directories(self):
         """Create all necessary output directories"""
@@ -345,28 +347,43 @@ class DataSciencePipeline:
             print(f"\n🧹 Input data (from Stage 1): {raw_data.shape}")
             
             # Import agent
-            from data_cleaning_agent import DataCleaningAgent
-            
-            # Create and run agent
-            agent = DataCleaningAgent(
-                name="DataCleaner",
-                output_dir=str(self.config.stage_dirs[2])
+            from data_cleaning_agent import DataCleaningAgent, DataCleaningConfig
+
+            # Configure — pass target_column so anomaly removal skips the label
+            cleaning_config = DataCleaningConfig(
+                output_dir=str(self.config.stage_dirs[2]),
+                target_column=self.config.target_column,
             )
-            
+
+            # Create and run agent
+            agent = DataCleaningAgent(name="DataCleaner", config=cleaning_config)
+
             print(f"\n⏳ Executing DataCleaningAgent...")
-            # ← KEY: Using output from Stage 1 as input
-            cleaned_data = agent.execute(raw_data)
-            
+            cleaning_result = agent.run(raw_data)
+            cleaned_data = cleaning_result['data']
+            cleaning_report = cleaning_result.get('report', {})
+
             print(f"✓ Cleaning complete")
             print(f"  - Output shape: {cleaned_data.shape}")
             print(f"  - Rows removed: {len(raw_data) - len(cleaned_data)}")
             print(f"  - Data retention: {len(cleaned_data)/len(raw_data)*100:.1f}%")
-            
+
             # Save for next stage
             cleaned_path = self.config.stage_dirs[2] / "cleaned_data.csv"
             cleaned_data.to_csv(cleaned_path, index=False)
             print(f"  - Saved to: {cleaned_path}")
-            
+
+            # After cleaning, column names are normalised (lowercased).
+            # Update config.target_column to match the normalised name so that
+            # Stage 3+ can locate the target column in the cleaned DataFrame.
+            if self.config.target_column:
+                normalised_target = self.config.target_column.lower().strip()
+                if normalised_target in cleaned_data.columns:
+                    self.config.target_column = normalised_target
+                elif self.config.target_column not in cleaned_data.columns:
+                    print(f"  ⚠️  target_column '{self.config.target_column}' not found after "
+                          f"cleaning; keeping original name for downstream stages.")
+
             # Track data lineage
             self.data_lineage.append({
                 'stage': 2,
@@ -374,15 +391,15 @@ class DataSciencePipeline:
                 'output_shape': cleaned_data.shape,
                 'rows_removed': len(raw_data) - len(cleaned_data),
             })
-            
+
             # Store results
             self.stage_outputs[2] = {
                 'cleaned_data': cleaned_data,
-                'cleaning_report': agent.get_cleaning_report(),
+                'cleaning_report': cleaning_report,
                 'agent': agent,
             }
-            
-            return cleaned_data, agent.get_cleaning_report()
+
+            return cleaned_data, cleaning_report
             
         except Exception as e:
             print(f"❌ Stage 2 failed: {str(e)}")
@@ -649,8 +666,8 @@ class DataSciencePipeline:
             print(f"\n📊 Input data (from Stage 4):")
             print(f"  - Model artifacts directory: {self.config.stage_dirs[4]}")
             
-            # Import agent
-            from evaluation import EvaluationConfig, EvaluationAgent
+            # Import agent (new Evaluation_agent.py)
+            from Evaluation_agent import EvaluationConfig, EvaluationAgent
             
             # Configure agent
             config = EvaluationConfig(
