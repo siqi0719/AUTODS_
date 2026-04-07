@@ -24,7 +24,10 @@ class PipelineConfig:
     def __init__(self):
         self.project_root = Path.cwd()
         self.data_path = None
-        self.csv_sep = ","               # CSV separator (use ";" for Bank Marketing, etc.)
+        # Column separator for CSV files.
+        # Leave as None (default) to let the pipeline auto-detect it from the
+        # first few lines of the file.  Set explicitly (e.g. ";") to override.
+        self.csv_sep = None
         self.target_column = None
         self.problem_type = "classification"
         self.random_state = 42
@@ -33,6 +36,13 @@ class PipelineConfig:
         # Planner settings
         self.business_description = ""   # natural-language task description
         self.use_planner = True          # set False to skip Stage 0
+
+        # Optional data preparation (Requirement 3)
+        # Set metadata_file to a .json/.csv/.txt file that describes the dataset
+        # structure (column names, value mappings, etc.).  When set, Stage 0 calls
+        # PlannerAgent.prepare_data() to convert the raw file into a clean CSV
+        # before the pipeline reads it.
+        self.metadata_file = None        # path to metadata / data-dictionary file
 
         # Stage output directories
         self.stage_dirs = {
@@ -97,7 +107,59 @@ class DataSciencePipeline:
         """Initialize storage for intermediate results"""
         self.stage_outputs = {}
         self.data_lineage = []
-    
+
+    # ========================================================================
+    # SEPARATOR AUTO-DETECTION
+    # ========================================================================
+
+    # Human-readable names for common separators (used in log messages)
+    _SEP_NAMES = {",": "comma", ";": "semicolon", "\t": "tab", "|": "pipe", " ": "space"}
+
+    def _resolve_csv_separator(self) -> str:
+        """
+        Return the CSV column separator to use for config.data_path.
+
+        If config.csv_sep is already set (non-None), it is returned as-is so
+        that explicit user overrides are always respected.
+
+        Otherwise the separator is sniffed from the first ten lines of the
+        file: comma, semicolon, tab, and pipe are tried in order; the one that
+        produces the highest *consistent* column count across all sampled lines
+        wins.  The result is written back to config.csv_sep so every subsequent
+        stage automatically reuses the same value without repeating detection.
+        Falls back to comma when the file cannot be read or no clear winner
+        is found.
+        """
+        if self.config.csv_sep is not None:
+            # Already resolved — skip detection
+            return self.config.csv_sep
+
+        candidates = [",", ";", "\t", "|"]
+        detected = ","   # safe default
+
+        try:
+            with open(self.config.data_path, encoding="utf-8", errors="replace") as fh:
+                lines = [fh.readline() for _ in range(10)]
+            lines = [ln for ln in lines if ln.strip()]
+
+            best_sep, best_score = ",", 0
+            for sep in candidates:
+                counts = [len(ln.split(sep)) for ln in lines]
+                # Accept only separators that give a *consistent* column count
+                # (min == max) and more than one column.
+                if counts and min(counts) == max(counts) and max(counts) > best_score:
+                    best_sep, best_score = sep, max(counts)
+
+            detected = best_sep
+
+        except Exception as exc:
+            print(f"  [AutoDetect] Separator detection failed ({exc}), defaulting to comma.")
+
+        self.config.csv_sep = detected
+        sep_name = self._SEP_NAMES.get(detected, repr(detected))
+        print(f"  [AutoDetect] CSV separator detected: {sep_name} ({repr(detected)})")
+        return detected
+
     # ========================================================================
     # STAGE 0: PLANNING
     # ========================================================================
@@ -122,6 +184,27 @@ class DataSciencePipeline:
                 output_dir=str(self.config.stage_dirs[0]),
             )
             self._planner = PlannerAgent(planner_config)
+
+            # If a metadata file is provided, run prepare_data() to convert the
+            # raw data file into a clean, column-labelled CSV before the pipeline
+            # reads it.  The output CSV overwrites config.data_path so that all
+            # downstream stages automatically use the prepared file.
+            # prepare_data() always writes comma-separated output, so fix the
+            # separator immediately instead of running auto-detection on it.
+            if self.config.metadata_file:
+                prepared_csv = self.config.stage_dirs[0] / "prepared_data.csv"
+                self._planner.prepare_data(
+                    data_file=self.config.data_path,
+                    metadata_file=self.config.metadata_file,
+                    output_csv=prepared_csv,
+                )
+                self.config.data_path = prepared_csv
+                self.config.csv_sep = ","   # prepared CSV is always comma-delimited
+                print(f"  [Planner] data_path updated to prepared CSV: {prepared_csv}")
+            else:
+                # Auto-detect (or honour the user's explicit override) before
+                # reading the schema sample.
+                self._resolve_csv_separator()
 
             # Load a small sample so the LLM can see the schema
             data_sample = pd.read_csv(self.config.data_path,
@@ -175,6 +258,10 @@ class DataSciencePipeline:
             )
             import pandas as pd
             
+            # Ensure separator is resolved (covers the case where Stage 0 was
+            # skipped via use_planner=False, or where csv_sep was not set).
+            self._resolve_csv_separator()
+
             # Load raw data
             print(f"\n📖 Loading raw data from: {self.config.data_path}")
             raw_data = pd.read_csv(self.config.data_path, sep=self.config.csv_sep)

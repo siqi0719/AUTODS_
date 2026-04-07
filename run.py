@@ -86,7 +86,9 @@ print("🔧 step 3：config...")
 
 config = PipelineConfig()
 config.data_path = "adult.csv"
-config.csv_sep = ","             # Bank Marketing CSV uses semicolon separator
+# config.csv_sep is None by default — the pipeline auto-detects the separator.
+# Override only when auto-detection fails, e.g.:
+#   config.csv_sep = ";"   # for Bank Marketing and other semicolon-delimited files
 config.random_state = 42
 
 # ── Planner settings ─────────────────────────────────────────────────────────

@@ -10,7 +10,7 @@ AutoDS is a production-ready data science automation framework that:
 
 - **Understands your business goal** from a plain-English description and configures the entire pipeline automatically
 - **Automates the entire ML workflow** from data understanding to reporting
-- **Handles real-world data issues** (missing values, outliers, imbalanced classes, inconsistent formats)
+- **Handles real-world data issues** (missing values, outliers, imbalanced classes, inconsistent formats, mixed separators)
 - **Generates intelligent reports** with technical analysis and business insights
 - **Requires minimal configuration** — works out of the box with sensible defaults
 - **Supports LLM integration** at multiple stages (Anthropic Claude and OpenAI) with rule-based fallback
@@ -33,7 +33,8 @@ AutoDS is a production-ready data science automation framework that:
 
 ### 🧠 LLM-Powered Planning (Stage 0)
 
-- Accepts a **natural-language business description** and automatically infers `target_column`, `problem_type`, `primary_metric`, and candidate models
+- Accepts a **natural-language business description in any language** and automatically infers `target_column`, `problem_type`, `primary_metric`, and candidate models
+- **Input normalisation**: informal, non-technical, or non-English descriptions are automatically interpreted and converted into a structured task specification before planning — no data science jargon required
 - **Adaptive replanning** after Stage 1: detects class imbalance, high missing rates, and small datasets, and adjusts downstream configs accordingly
 - **Post-modelling review** generates a professional narrative summary for the final report
 - Works with **Anthropic Claude** (primary) or **OpenAI** (fallback); silently falls back to rule-based defaults when no API key is present
@@ -113,7 +114,7 @@ If neither key is present, all LLM features fall back to rule-based defaults and
 Edit `run.py`:
 
 ```python
-# Describe your task in plain English
+# Describe your task in plain English (any language, any style)
 config.business_description = (
     "We have a customer dataset and want to predict whether a customer "
     "will churn. The target column is 'churn'. The model should be interpretable."
@@ -121,6 +122,10 @@ config.business_description = (
 config.use_planner   = True      # set False to skip Stage 0
 config.target_column = "churn"   # optional — Planner can infer this
 config.problem_type  = "classification"
+
+# Optional: supply a metadata file to help the Planner label columns
+# and convert non-CSV formats automatically
+config.metadata_file = "data_dictionary.json"   # or .csv / .txt
 ```
 
 Then run:
@@ -186,7 +191,7 @@ AUTODS_/
 ├── feature_engineering_agent.py                # Stage 3 — Feature Engineering
 ├── modelling_agent.py                          # Stage 4 — Modelling
 ├── evaluation.py                               # Stage 5 — Evaluation
-├── multi_agent_report_generator_standalone.py  # Stage 6 — Report Generation
+├── multi_agent_report_generator.py             # Stage 6 — Report Generation
 │
 ├── autods_pipeline_output/                     # Runtime outputs
 │   ├── 00_planning/                            # Stage 0: plan JSON files
@@ -215,7 +220,7 @@ AUTODS_/
 
 | Function | Trigger point | What it does |
 |----------|--------------|-------------|
-| `plan()` | Pipeline start | Reads business description + data schema → outputs target column, problem type, metric, candidate models, feature task description |
+| `plan()` | Pipeline start | Reads business description + data schema (+ optional extra files) → outputs target column, problem type, metric, candidate models, feature task description |
 | `replan_after_understanding()` | After Stage 1 | Inspects DataUnderstanding output; adjusts metric (e.g., imbalance → F1), disables LLM planner on high-missing data, reduces CV folds on small datasets |
 | `review_modelling()` | After Stage 5 | Reads leaderboard; writes key findings and a 2–4 sentence narrative for the business report |
 
@@ -231,8 +236,79 @@ PlannerConfig(
 )
 ```
 
+**Input normalisation** (automatic, no configuration required):
+
+Before generating the pipeline configuration, `plan()` runs a dedicated LLM pass to interpret the `business_description`.  This means you can write in any language or style:
+
+| Input style | Example |
+|-------------|---------|
+| Plain Chinese | `"我想预测客户会不会流失，越准越好"` |
+| Colloquial English | `"figure out which loans are gonna go bad"` |
+| Domain jargon | `"identify churners using RFM features"` |
+| Incomplete | `"predict the label column"` |
+
+The normalised description and the original raw text are both saved to `initial_plan.json` under the keys `normalised_description` and `raw_business_description` for full traceability.  When no LLM is available the raw text is used as-is.
+
+**Extra file input** (`extra_files` parameter of `plan()`):
+
+`plan()` accepts an optional `extra_files` list of file paths that provide supplementary domain context — for example, a data dictionary, a business requirements document, or a metadata JSON exported from another tool. The Planner reads each file, extracts a text summary, and appends it to the LLM prompt so that the generated plan can reflect domain-specific knowledge that is not visible in the data schema alone.
+
+Supported formats:
+
+| Format | How it is read |
+|--------|---------------|
+| `.json` | Pretty-printed content (truncated to 3 000 chars) |
+| `.xlsx` / `.xls` | Shape + column names + first 3 rows |
+| `.csv` | Shape + column names + first 3 rows (separator auto-detected) |
+| `.txt` / `.md` | Raw text (truncated to 3 000 chars) |
+
+Example usage in `run.py`:
+
+```python
+plan = planner.plan(
+    business_description = config.business_description,
+    data_sample          = raw_data.head(5),
+    extra_files          = [
+        "data_dictionary.json",   # column descriptions
+        "business_requirements.md",
+    ],
+)
+```
+
+**Data preparation** (`prepare_data()` method):
+
+Before the main planning step, `prepare_data()` converts a raw data file into a pipeline-ready DataFrame (and optionally a CSV).  It is called automatically when `config.metadata_file` is set.
+
+Supported input formats:
+
+| Format | How it is loaded |
+|--------|-----------------|
+| `.csv` / `.tsv` / `.txt` | Delimited text — separator auto-detected |
+| `.xlsx` / `.xls` | Excel — first sheet used |
+| `.json` | Array of records or dict-of-lists |
+
+Supported metadata formats:
+
+| Format | How it is parsed |
+|--------|-----------------|
+| `.json` | `{"columns": [...], "value_mappings": {...}}` |
+| `.csv` | First column treated as ordered column names |
+| `.txt` / `.names` | One column name per line (UCI style) |
+
+Example usage in `run.py`:
+
+```python
+config.data_path     = "raw_data.tsv"        # could be TSV, Excel, JSON, …
+config.metadata_file = "data_dictionary.json" # optional column descriptions
+```
+
+When `metadata_file` is set the prepared CSV is saved to
+`autods_pipeline_output/00_planning/prepared_data.csv` and `config.data_path`
+is updated automatically so all downstream stages use it.
+
 **Plan output saved to** `autods_pipeline_output/00_planning/`:
 - `initial_plan.json`
+- `prepared_data.csv` *(only when `metadata_file` is set)*
 - `replan_after_understanding.json`
 - `modelling_review.json`
 
@@ -327,7 +403,7 @@ For full API documentation see [`README_DataCleaningAgent.md`](README_DataCleani
 
 ---
 
-### Stage 6 — Report Generation (`multi_agent_report_generator_standalone.py`)
+### Stage 6 — Report Generation (`multi_agent_report_generator.py`)
 
 **Purpose**: Generate final technical and business reports.
 
@@ -395,9 +471,14 @@ config.target_column        = "target"        # optional if use_planner=True
 config.problem_type         = "classification" # optional if use_planner=True
 config.random_state         = 42
 
+# Separator — leave unset (None) for auto-detection, or override explicitly:
+# config.csv_sep = ";"   # e.g. for Bank Marketing and other semicolon files
+# config.csv_sep = "\t"  # for TSV files
+
 # Planner settings
 config.business_description = "Predict customer churn from usage data."
 config.use_planner          = True    # False to skip Stage 0 entirely
+config.metadata_file        = None    # optional: path to data dictionary file
 ```
 
 ### Skipping the Planner
@@ -421,6 +502,15 @@ Pass a `DataCleaningConfig` directly inside `run_stage_2_cleaning()` in `autods_
 
 All LLM features (Planner, DataCleaning column advisor, FeatureEngineering, Modelling) degrade gracefully to rule-based defaults. The pipeline always runs end-to-end without any API key.
 
+### Wrong number of columns / single-column DataFrame
+
+The pipeline auto-detects the CSV separator (comma, semicolon, tab, pipe) before reading any data.  If detection produces the wrong result, override it explicitly:
+
+```python
+config.csv_sep = ";"   # Bank Marketing and other semicolon-delimited files
+config.csv_sep = "\t"  # TSV files
+```
+
 ### Small dataset / class imbalance
 
 Stage 0 (Planner) detects these automatically and adjusts CV folds and the primary metric. If the Planner is disabled, Stage 3 already handles stratified-split fallback automatically.
@@ -431,7 +521,7 @@ Handled automatically by `_make_json_serializable()` in the pipeline orchestrato
 
 ### Module not found
 
-Ensure all `*_agent.py` files, `evaluation.py`, `multi_agent_report_generator_standalone.py`, and `autods_implementation_guide.py` are in the same directory as `run.py`.
+Ensure all `*_agent.py` files, `evaluation.py`, `multi_agent_report_generator.py`, and `autods_implementation_guide.py` are in the same directory as `run.py`.
 
 ---
 
@@ -516,7 +606,16 @@ langchain-core>=0.1.0
 
 ## ✅ Version History
 
-**v0.1** (current)
+**v0.2** (current)
+- PlannerAgent `plan()` now accepts `extra_files` — pass JSON metadata, Excel data dictionaries, Markdown specs, or CSV reference tables as supplementary planning context
+- PlannerAgent input normalisation: `business_description` is interpreted by a dedicated LLM pass before planning, supporting any language, informal phrasing, and non-technical terminology
+- PlannerAgent `prepare_data()`: converts raw data files (Excel, JSON, TSV, CSV) into a pipeline-ready DataFrame, guided by an optional metadata file for column naming and value mapping; set `config.metadata_file` to enable
+- CSV separator auto-detection: `config.csv_sep` defaults to `None`; the pipeline sniffs comma / semicolon / tab / pipe from the file and sets the separator automatically before any stage reads data; explicit override still supported
+- Stage 6 report agent upgraded to `MultiAgentReportGenerator` (LLM-powered technical + business reports)
+- `pos_label` auto-detection in ModellingAgent for non-numeric binary targets (`'e'`/`'p'`, `'0'`/`'1'`, etc.)
+- Unified `utils.json_default` for numpy-type JSON serialisation across all agents
+
+**v0.1**
 - 7-stage pipeline with Planner Agent (Stage 0)
 - LLM-driven config generation, adaptive replanning, post-modelling review
 - DataCleaningAgent v2.0 with 13-step cleaning pipeline and `DataCleaningConfig`
