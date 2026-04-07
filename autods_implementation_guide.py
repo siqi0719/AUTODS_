@@ -29,7 +29,7 @@ class PipelineConfig:
         # first few lines of the file.  Set explicitly (e.g. ";") to override.
         self.csv_sep = None
         self.target_column = None
-        self.problem_type = "classification"
+        self.problem_type = None   # None = let Planner or auto-detect decide; set explicitly to "classification" or "regression" to override
         self.random_state = 42
         self.output_base_dir = self.project_root / "autods_pipeline_output"
 
@@ -162,6 +162,42 @@ class DataSciencePipeline:
         print(f"  [AutoDetect] CSV separator detected: {sep_name} ({repr(detected)})")
         return detected
 
+    def _resolve_problem_type(self, df: "pd.DataFrame") -> str:
+        """
+        Return the problem type to use for this pipeline run.
+
+        If config.problem_type is already set (non-None), it is returned
+        as-is so that explicit user overrides are always respected.
+
+        Otherwise the type is inferred from the target column dtype:
+        - float or integer with more than 20 unique values → "regression"
+        - everything else → "classification"
+
+        The result is written back to config.problem_type so every
+        subsequent stage automatically reuses the same value.
+        """
+        import pandas as pd
+
+        if self.config.problem_type is not None:
+            return self.config.problem_type
+
+        target = self.config.target_column
+        if target and target in df.columns:
+            col = df[target]
+            n_unique = col.nunique()
+            if pd.api.types.is_float_dtype(col) or (
+                pd.api.types.is_integer_dtype(col) and n_unique > 20
+            ):
+                detected = "regression"
+            else:
+                detected = "classification"
+        else:
+            detected = "classification"   # safe default when target unknown
+
+        self.config.problem_type = detected
+        print(f"  [AutoDetect] problem_type detected: {detected}")
+        return detected
+
     # ========================================================================
     # STAGE 0: PLANNING
     # ========================================================================
@@ -213,9 +249,18 @@ class DataSciencePipeline:
                                       sep=self.config.csv_sep,
                                       nrows=planner_config.data_sample_rows)
 
+            # Pass user-supplied overrides as hard constraints so the rule-based
+            # fallback (and the LLM) can respect them even without LLM inference.
+            user_constraints: dict = {}
+            if self.config.target_column:
+                user_constraints["target_column"] = self.config.target_column
+            if self.config.problem_type:
+                user_constraints["problem_type"] = self.config.problem_type
+
             plan = self._planner.plan(
                 business_description=self.config.business_description,
                 data_sample=data_sample,
+                constraints=user_constraints or None,
             )
             self._planner_plan = plan
 
@@ -224,7 +269,7 @@ class DataSciencePipeline:
                 self.config.target_column = plan["target_column"]
                 print(f"  [Planner] target_column set to: {self.config.target_column}")
 
-            if plan.get("problem_type"):
+            if not self.config.problem_type and plan.get("problem_type"):
                 self.config.problem_type = plan["problem_type"]
                 print(f"  [Planner] problem_type set to : {self.config.problem_type}")
 
@@ -383,6 +428,10 @@ class DataSciencePipeline:
                 elif self.config.target_column not in cleaned_data.columns:
                     print(f"  ⚠️  target_column '{self.config.target_column}' not found after "
                           f"cleaning; keeping original name for downstream stages.")
+
+            # Auto-detect problem_type if not already set by user or Planner
+            self._resolve_problem_type(cleaned_data)
+            print(f"  - problem_type: {self.config.problem_type}")
 
             # Track data lineage
             self.data_lineage.append({
@@ -587,12 +636,35 @@ class DataSciencePipeline:
             # Pull planner overrides (if any)
             mc_cfg = self._planner_plan.get("modelling_config", {})
 
-            # Validate planner-suggested model names against what is actually available
-            _VALID_MODELS = {
-                "logistic_regression", "random_forest", "svm_rbf", "xgboost", "lightgbm"
+            # Normalize planner model names to the snake_case names used by ModellingAgent.
+            # Planner LLM returns PascalCase (e.g. "RandomForest"); the agent uses
+            # snake_case (e.g. "random_forest"). Unrecognised names are passed through
+            # unchanged — ModellingAgent will silently skip them and log a warning.
+            _NAME_MAP = {
+                # classification
+                "logisticregression":   "logistic_regression",
+                "randomforest":         "random_forest",
+                "svc":                  "svm_rbf",
+                "svm":                  "svm_rbf",
+                "xgboost":              "xgboost",
+                "lightgbm":             "lightgbm",
+                "decisiontree":         "random_forest",  # closest available
+                "kneighbors":           "logistic_regression",
+                "gradientboosting":     "xgboost",
+                # regression
+                "linearregression":     "ridge_regression",
+                "ridge":                "ridge_regression",
+                "lasso":                "ridge_regression",
+                "randomforestregressor":"random_forest_regressor",
+                "svr":                  "svr_rbf",
+                "xgboostregressor":     "xgboost_regressor",
+                "lightgbmregressor":    "lightgbm_regressor",
             }
             planner_names = mc_cfg.get("candidate_model_names") or []
-            validated_names = [n for n in planner_names if n in _VALID_MODELS] or None
+            validated_names = [
+                _NAME_MAP.get(n.lower().replace("_", "").replace("-", ""), n)
+                for n in planner_names
+            ] or None
 
             # Configure agent
             config = ModellingConfig(

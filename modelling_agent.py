@@ -1,13 +1,20 @@
-"""Hyperparameter-tuning modelling agent (V1) for tabular learning experiments.
+"""Hyperparameter-tuning modelling agent (V2) for tabular learning experiments.
 
-V1 extends the V0 baseline with a two-stage pipeline:
-  Stage 1 — quick baseline comparison across all candidates (identical to V0).
-  Stage 2 — Optuna TPE hyperparameter search on the top-N Stage 1 models,
-             with adaptive trial budget, early stopping, and optional LLM
-             candidate selection.
+V2 extends V1 with:
+  - Full end-to-end regression support (classification + regression parity).
+  - PlannerInput interface: accepts a JSON file from an external reasoning /
+    planner agent to override task, model, tuning, and feature-selection
+    settings programmatically.
+  - _normalize_tuning_score: fixes Stage 2 improvement tracking for negated
+    regression scorers (neg_rmse, neg_mae).
 
-V0 artifact format is preserved; V1 adds tuning_summary.json and
-tuning_history.json to the output directory when tuning is enabled.
+Stage 1 — quick baseline comparison across all candidates.
+Stage 2 — Optuna TPE hyperparameter search on the top-N Stage 1 models,
+           with adaptive trial budget, early stopping, and optional LLM
+           candidate selection.
+
+V1 artifact format is preserved; V2 adds planner_input.json to the output
+directory when a PlannerInput is supplied.
 """
 
 from __future__ import annotations
@@ -16,7 +23,8 @@ import json
 import os
 import re
 import time
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace as dataclass_replace
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -32,15 +40,23 @@ from sklearn.metrics import (
     accuracy_score,
     confusion_matrix,
     f1_score,
+    matthews_corrcoef,
     mean_absolute_error,
     mean_squared_error,
+    precision_recall_curve,
     precision_score,
     r2_score,
     recall_score,
     roc_auc_score,
+    roc_curve,
 )
-from sklearn.metrics import make_scorer
-from sklearn.model_selection import KFold, StratifiedKFold, cross_validate, train_test_split
+from sklearn.model_selection import (
+    KFold,
+    StratifiedKFold,
+    cross_val_predict,
+    cross_validate,
+    train_test_split,
+)
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC, SVR
@@ -100,6 +116,7 @@ class ModellingConfig:
     supported_future_problem_families: List[str] = field(
         default_factory=lambda: ["classification", "regression", "unsupervised", "nlp"]
     )
+    upstream_context: Optional[Dict[str, Any]] = None
 
     def resolved_primary_metric(self) -> str:
         if self.primary_metric:
@@ -116,6 +133,145 @@ class TuningConfig:
     early_stopping_rounds: int = 10  # consecutive non-improving trials before study stops
     tuning_intensity: str = "auto"  # "auto" | "light" | "full"
     use_llm_stage2_selection: bool = True  # falls back to top-N Python when LLM unavailable
+
+
+@dataclass
+class PlannerInput:
+    """Structured contract from an external reasoning / planner agent.
+
+    Produced by an upstream planning component and loaded via
+    ``load_planner_input(path)``.  Fields set to ``None`` do not override
+    the corresponding ``ModellingConfig`` or ``TuningConfig`` setting — only
+    explicitly provided values take effect.
+
+    Supported JSON schemas
+    ----------------------
+    Flat (all top-level keys)::
+
+        {
+          "source": "autods_planner_v1",
+          "problem_type": "regression",
+          "primary_metric": "rmse",
+          "candidate_models": ["xgboost_regressor"],
+          "enable_tuning": true,
+          "tuning_intensity": "auto"
+        }
+
+    Nested (grouped keys — also accepted)::
+
+        {
+          "source": "autods_planner_v1",
+          "task": {"problem_type": "regression", "primary_metric": "rmse"},
+          "models": {"candidate_models": ["xgboost_regressor"]},
+          "tuning": {"enable_tuning": true, "tuning_intensity": "auto"},
+          "features": {"drop_columns": ["id"]}
+        }
+
+    Flat keys take precedence over nested block keys when both are present.
+    """
+
+    # ── provenance ──────────────────────────────────────────────────────────
+    source: str = "unknown"
+    schema_version: str = "1.0"
+    rationale: str = ""
+
+    # ── task overrides (None = use ModellingConfig value as-is) ────────────
+    problem_type: Optional[str] = None
+    primary_metric: Optional[str] = None
+    task_description: Optional[str] = None
+    candidate_models: Optional[List[str]] = None
+
+    # ── tuning overrides ────────────────────────────────────────────────────
+    enable_tuning: Optional[bool] = None
+    tuning_intensity: Optional[str] = None
+    n_top_models_to_tune: Optional[int] = None
+
+    # ── feature hints ───────────────────────────────────────────────────────
+    drop_columns: Optional[List[str]] = None   # remove from X before training
+    use_columns: Optional[List[str]] = None    # keep only these in X (takes precedence over drop)
+
+    # ── pass-through context ─────────────────────────────────────────────────
+    extra: Dict[str, Any] = field(default_factory=dict)
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "PlannerInput":
+        """Deserialise from a dict supporting both flat and nested JSON formats."""
+        task_block = data.get("task", {})
+        tuning_block = data.get("tuning", {})
+        features_block = data.get("features", data.get("feature_hints", {}))
+        models_block = data.get("models", {})
+
+        def _flat_or_block(flat_key: str, block: Dict[str, Any]) -> Any:
+            return data[flat_key] if flat_key in data else block.get(flat_key)
+
+        def _bool_or_block(flat_key: str, block: Dict[str, Any]) -> Optional[bool]:
+            """Handle booleans carefully so False is not confused with missing."""
+            if flat_key in data:
+                return bool(data[flat_key])
+            if flat_key in block:
+                return bool(block[flat_key])
+            return None
+
+        known_keys = {
+            "schema_version", "source", "rationale",
+            "task", "tuning", "features", "feature_hints", "models",
+            "problem_type", "primary_metric", "task_description", "candidate_models",
+            "enable_tuning", "tuning_intensity", "n_top_models_to_tune",
+            "drop_columns", "use_columns",
+        }
+        return cls(
+            schema_version=data.get("schema_version", "1.0"),
+            source=data.get("source", "unknown"),
+            rationale=data.get("rationale", ""),
+            problem_type=_flat_or_block("problem_type", task_block),
+            primary_metric=_flat_or_block("primary_metric", task_block),
+            task_description=_flat_or_block("task_description", task_block),
+            candidate_models=_flat_or_block("candidate_models", models_block),
+            enable_tuning=_bool_or_block("enable_tuning", tuning_block),
+            tuning_intensity=_flat_or_block("tuning_intensity", tuning_block),
+            n_top_models_to_tune=_flat_or_block("n_top_models_to_tune", tuning_block),
+            drop_columns=_flat_or_block("drop_columns", features_block),
+            use_columns=_flat_or_block("use_columns", features_block),
+            extra={k: v for k, v in data.items() if k not in known_keys},
+        )
+
+    @classmethod
+    def from_json_file(cls, path: str) -> "PlannerInput":
+        """Load from a JSON file path."""
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return cls.from_dict(data)
+
+    def apply_to_config(self, config: ModellingConfig) -> ModellingConfig:
+        """Return a copy of ``config`` with planner overrides applied."""
+        overrides: Dict[str, Any] = {}
+        if self.problem_type is not None:
+            overrides["problem_type"] = self.problem_type
+        if self.primary_metric is not None:
+            overrides["primary_metric"] = self.primary_metric
+        if self.task_description:
+            overrides["task_description"] = self.task_description
+        if self.candidate_models is not None:
+            overrides["candidate_model_names"] = self.candidate_models
+        return dataclass_replace(config, **overrides) if overrides else config
+
+    def apply_to_tuning_config(self, tuning_config: TuningConfig) -> TuningConfig:
+        """Return a copy of ``tuning_config`` with planner overrides applied."""
+        overrides: Dict[str, Any] = {}
+        if self.enable_tuning is not None:
+            overrides["enable_tuning"] = self.enable_tuning
+        if self.tuning_intensity is not None:
+            overrides["tuning_intensity"] = self.tuning_intensity
+        if self.n_top_models_to_tune is not None:
+            overrides["n_top_models_to_tune"] = self.n_top_models_to_tune
+        return dataclass_replace(tuning_config, **overrides) if overrides else tuning_config
+
+
+def load_planner_input(path: str) -> PlannerInput:
+    """Load a ``PlannerInput`` from a JSON file.  Raises ``FileNotFoundError`` if the path does not exist."""
+    if not Path(path).exists():
+        raise FileNotFoundError(f"Planner input file not found: {path}")
+    return PlannerInput.from_json_file(path)
 
 
 # ---------------------------------------------------------------------------
@@ -280,7 +436,15 @@ class ModellingAgent:
         self,
         config: ModellingConfig,
         tuning_config: Optional[TuningConfig] = None,
+        planner_input: Optional[PlannerInput] = None,
     ):
+        self.planner_input_: Optional[PlannerInput] = planner_input
+        # Apply planner overrides before freezing config objects
+        if planner_input is not None:
+            config = planner_input.apply_to_config(config)
+            tuning_config = planner_input.apply_to_tuning_config(
+                tuning_config if tuning_config is not None else TuningConfig()
+            )
         self.config = config
         self.tuning_config: TuningConfig = tuning_config or TuningConfig()
         self.summary_: Dict[str, Any] = {}
@@ -295,6 +459,17 @@ class ModellingAgent:
         self.resolved_cv_folds_: int = self.config.cv_folds
         self.tuning_summary_: Dict[str, Any] = {}
         self.tuning_history_: Dict[str, List[Dict[str, Any]]] = {}
+        self.threshold_optimization_: Dict[str, Any] = {}
+        self.best_threshold_: Optional[float] = None
+        # ── upstream context ─────────────────────────────────────────────────
+        self.upstream_context_: Dict[str, Any] = dict(config.upstream_context or {})
+        self._upstream_decisions_: List[Dict[str, str]] = []
+        self._upstream_warnings_: List[str] = []
+        self._upstream_skip_models_: set = set()
+        self._upstream_skip_reasons_: Dict[str, str] = {}
+        self._upstream_apply_balanced_lightgbm_: bool = False
+        self._upstream_feature_names_final_: Optional[List[str]] = None
+        self.stage_handoff_: Dict[str, Any] = {}
 
         load_dotenv()
         self.llm = self._init_llm()
@@ -302,12 +477,8 @@ class ModellingAgent:
     def _init_llm(self):
         if not self.config.use_llm_planner:
             return None
-        if ChatOpenAI is None or HumanMessage is None or SystemMessage is None:
-            return None
-        if not os.getenv("OPENAI_API_KEY"):
-            return None
-
-        return ChatOpenAI(
+        from utils import build_chat_llm
+        return build_chat_llm(
             model=self.config.llm_model,
             temperature=self.config.llm_temperature,
         )
@@ -319,6 +490,22 @@ class ModellingAgent:
         test_size: float = 0.2,
         feature_metadata: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
+        _run_start_ts = datetime.now(timezone.utc).isoformat()
+
+        # ── Apply planner feature hints before validation ──────────────────
+        if self.planner_input_ is not None:
+            if self.planner_input_.use_columns:
+                available = [c for c in self.planner_input_.use_columns if c in X.columns]
+                if available:
+                    X = X[available].copy()
+            elif self.planner_input_.drop_columns:
+                to_drop = [c for c in self.planner_input_.drop_columns if c in X.columns]
+                if to_drop:
+                    X = X.drop(columns=to_drop).copy()
+
+        # ── Absorb upstream stage context (data-scale rules, cv_folds, etc.) ─
+        self._absorb_upstream_context(n_rows=len(X), n_cols=X.shape[1])
+
         # Issue #1: accept full data; split internally with guaranteed stratification
         self._expected_columns_: Optional[List[str]] = None  # reset before validation
         self._validate_inputs(X, y)
@@ -331,19 +518,6 @@ class ModellingAgent:
         )
         # P2: record train columns so predict-time column drift can be caught
         self._expected_columns_ = list(X_train.columns)
-
-        # Detect the positive label for binary classification.
-        # sklearn string scorers default to pos_label=1 (int), which fails when
-        # labels are strings like 'e'/'p' or 'yes'/'no'.
-        unique_labels = sorted(y_train.dropna().unique(), key=str)
-        if self.config.problem_type == "classification" and len(unique_labels) == 2:
-            _pos_candidates = {1, "1", "yes", "true", "y", "t", "p", "positive"}
-            self.pos_label_ = next(
-                (lb for lb in unique_labels if lb in _pos_candidates),
-                unique_labels[-1],
-            )
-        else:
-            self.pos_label_ = 1
 
         self.llm_plan_ = self._generate_llm_plan(X_train, y_train, feature_metadata)
         candidates = self._get_candidate_models()
@@ -416,14 +590,22 @@ class ModellingAgent:
 
                 primary_cv_col = self._primary_cv_col()
                 stage1_cv_score = float(stage1_data.get(primary_cv_col, np.nan))
-                improvement = (
-                    round(best_score - stage1_cv_score, 6)
-                    if not (np.isnan(best_score) or np.isnan(stage1_cv_score))
-                    else None
-                )
+                # V2 fix: normalize raw Optuna score (may be negative for neg_* scorers)
+                # to the same positive scale as the leaderboard cv_* columns before
+                # computing improvement.
+                normalized_score = self._normalize_tuning_score(best_score)
+                is_lower_better = self.config.resolved_primary_metric() in {"rmse", "mae"}
+                if not (np.isnan(normalized_score) or np.isnan(stage1_cv_score)):
+                    if is_lower_better:
+                        # for RMSE/MAE: positive improvement means score got smaller
+                        improvement = round(stage1_cv_score - normalized_score, 6)
+                    else:
+                        improvement = round(normalized_score - stage1_cv_score, 6)
+                else:
+                    improvement = None
                 tuning_summary[model_name] = {
                     "status": "ok",
-                    "best_tuned_cv_score": best_score,
+                    "best_tuned_cv_score": normalized_score,
                     "baseline_cv_score": stage1_cv_score,
                     "improvement": improvement,
                     "n_trials_actual": len(history),
@@ -480,6 +662,29 @@ class ModellingAgent:
         self.best_model_ = fitted_models[self.best_model_name_]
         self.best_model_metrics_ = best_row
 
+        # ── Threshold optimisation (binary classification only) ────────────────
+        best_preds = prediction_outputs.get(self.best_model_name_ or "", {})
+        _is_binary = (
+            self.config.problem_type == "classification"
+            and y_train.nunique() == 2
+            and "test_scores" in best_preds
+            and y_test is not None
+        )
+        if _is_binary:
+            self.threshold_optimization_ = self._compute_threshold_optimization(
+                X_train=X_train,
+                y_train=y_train,
+                y_test=y_test,
+                test_scores=np.asarray(best_preds["test_scores"]),
+            )
+            self.best_threshold_ = (
+                self.threshold_optimization_.get("selected_threshold")
+                if self.threshold_optimization_.get("enabled")
+                else None
+            )
+        else:
+            self.threshold_optimization_ = {"enabled": False, "reason": "not_binary_classification"}
+
         self.summary_ = self._build_summary(
             X_train=X_train,
             y_train=y_train,
@@ -493,8 +698,71 @@ class ModellingAgent:
             y_test=y_test,
             prediction_outputs=prediction_outputs,
             feature_names=list(X_train.columns),
+            threshold_optimization=self.threshold_optimization_,
         )
         self.metadata_ = self._build_metadata(feature_metadata=feature_metadata)
+
+        # ── Stage handoff ─────────────────────────────────────────────────────
+        _models_attempted = [r["model_name"] for r in leaderboard_rows]
+        _models_succeeded = [r["model_name"] for r in leaderboard_rows if "training_error" not in r]
+        _training_errors = {
+            r["model_name"]: r["training_error"]
+            for r in leaderboard_rows
+            if "training_error" in r
+        }
+        # Merge upstream-skipped models into the skipped-reason log
+        _skipped_all = dict(self._upstream_skip_reasons_)
+        _skipped_all.update(_training_errors)
+
+        _primary_metric = self.config.resolved_primary_metric()
+        _primary_cv_col = self._primary_cv_col()
+        _best_score_raw = self.best_model_metrics_.get(_primary_cv_col, np.nan)
+        _best_score = float(_best_score_raw) if not (
+            isinstance(_best_score_raw, float) and np.isnan(_best_score_raw)
+        ) else None
+
+        # Top-3 leaderboard snapshot
+        _lb_cols = ["model_name", _primary_cv_col]
+        _lb_available = [c for c in _lb_cols if c in leaderboard.columns]
+        _top3_rows = leaderboard[_lb_available].iloc[:3].to_dict(orient="records")
+        _leaderboard_top3 = [
+            {
+                "model": str(row.get("model_name", "")),
+                "score": float(row[_primary_cv_col]) if _primary_cv_col in row and not (
+                    isinstance(row[_primary_cv_col], float) and np.isnan(row[_primary_cv_col])
+                ) else None,
+            }
+            for row in _top3_rows
+        ]
+
+        # One-line summary for downstream LLM consumption
+        _n_ok = len(_models_succeeded)
+        _n_total = len(_models_attempted) + len(self._upstream_skip_models_)
+        _score_str = f"{_best_score:.4f}" if _best_score is not None else "n/a"
+        _summary_line = (
+            f"Best model: {self.best_model_name_} "
+            f"({_primary_metric}={_score_str}) on {self.config.problem_type} task; "
+            f"{_n_ok}/{_n_total} models trained successfully."
+        )
+
+        self.stage_handoff_ = {
+            "stage_id": "stage_4",
+            "stage_name": "ModellingAgent",
+            "status": "success",
+            "timestamp": _run_start_ts,
+            "summary": _summary_line,
+            "key_outputs": {
+                "models_attempted": _models_attempted,
+                "models_succeeded": _models_succeeded,
+                "best_model_name": self.best_model_name_,
+                "best_model_score": _best_score,
+                "primary_metric_used": _primary_metric,
+                "leaderboard_top3": _leaderboard_top3,
+                "training_skipped_reason": _skipped_all,
+            },
+            "decisions": list(self._upstream_decisions_),
+            "warnings": list(self._upstream_warnings_),
+        }
 
         result = {
             "status": "success",
@@ -512,12 +780,112 @@ class ModellingAgent:
             "llm_plan": self.llm_plan_,
             "tuning_summary": tuning_summary,
             "tuning_history": tuning_history,
+            "threshold_optimization": self.threshold_optimization_,
+            "stage_handoff": self.stage_handoff_,
         }
 
         if self.config.save_artifacts:
             self._save_artifacts(result)
 
         return result
+
+    def _absorb_upstream_context(self, n_rows: int, n_cols: int) -> None:
+        """Translate upstream stage_handoff context into behaviour adjustments.
+
+        Called once at the start of ``run()`` after planner feature hints are
+        applied.  The method mutates internal state only — it never raises; any
+        condition that cannot be satisfied is recorded as a warning instead.
+
+        Context keys consumed
+        ---------------------
+        class_imbalance_ratio : float   majority-class fraction (Stage 1 output)
+        n_rows                : int     row count at the time of understanding/cleaning
+        n_cols                : int     feature count at the time of feature engineering
+        train_size            : int     number of training rows (Stage 3 output)
+        feature_names_final   : list    final feature column names (Stage 3 output)
+        """
+        ctx = self.upstream_context_
+        if not ctx:
+            return
+
+        decisions = self._upstream_decisions_
+        warnings_ = self._upstream_warnings_
+
+        # ── class imbalance → class_weight for LightGBM ──────────────────────
+        imbalance_ratio = ctx.get("class_imbalance_ratio")
+        if (
+            imbalance_ratio is not None
+            and float(imbalance_ratio) > 0.9
+            and self.config.problem_type == "classification"
+        ):
+            self._upstream_apply_balanced_lightgbm_ = True
+            decisions.append({
+                "decision": "Enable class_weight='balanced' for LightGBM classifier",
+                "reason": (
+                    f"Upstream class_imbalance_ratio={float(imbalance_ratio):.2f} > 0.9; "
+                    "LR / RF / SVM already use class_weight='balanced' by default"
+                ),
+            })
+            warnings_.append(
+                f"Severe class imbalance (majority class ratio {float(imbalance_ratio):.2f}). "
+                "LightGBM will use class_weight='balanced'. "
+                "XGBoost does not support class_weight directly — consider providing "
+                "scale_pos_weight via PlannerInput if XGBoost is selected as the best model."
+            )
+
+        # ── data scale → model skip list ─────────────────────────────────────
+        effective_rows = int(ctx.get("n_rows") or n_rows)
+
+        if effective_rows < 50:
+            for m in ("svm_rbf", "svr_rbf"):
+                self._upstream_skip_models_.add(m)
+                reason = (
+                    f"Skipped by upstream context: dataset too small "
+                    f"(n_rows={effective_rows} < 50) — kernel SVM unstable with very few samples"
+                )
+                self._upstream_skip_reasons_[m] = reason
+                decisions.append({"decision": f"Skip {m}", "reason": reason})
+
+        if effective_rows > 50_000:
+            for m in ("svm_rbf", "svr_rbf"):
+                if m not in self._upstream_skip_models_:
+                    self._upstream_skip_models_.add(m)
+                    reason = (
+                        f"Skipped by upstream context: dataset too large "
+                        f"(n_rows={effective_rows} > 50 000) — kernel SVM training time impractical"
+                    )
+                    self._upstream_skip_reasons_[m] = reason
+                    decisions.append({"decision": f"Skip {m}", "reason": reason})
+
+        # ── train size → CV folds cap ─────────────────────────────────────────
+        upstream_train_size = ctx.get("train_size")
+        if upstream_train_size is not None and int(upstream_train_size) < 150:
+            old_folds = self.resolved_cv_folds_
+            self.resolved_cv_folds_ = min(self.resolved_cv_folds_, 3)
+            if self.resolved_cv_folds_ != old_folds:
+                decisions.append({
+                    "decision": f"Reduce CV folds from {old_folds} to {self.resolved_cv_folds_}",
+                    "reason": (
+                        f"Upstream train_size={upstream_train_size} < 150; "
+                        "capped at 3 folds to avoid empty-fold errors with small datasets"
+                    ),
+                })
+                warnings_.append(
+                    f"Upstream train_size={upstream_train_size} is small; "
+                    f"CV folds reduced to {self.resolved_cv_folds_}."
+                )
+
+        # ── feature names alignment ──────────────────────────────────────────
+        upstream_features = ctx.get("feature_names_final")
+        if upstream_features:
+            self._upstream_feature_names_final_ = list(upstream_features)
+            decisions.append({
+                "decision": "Reference upstream feature_names_final for feature importance alignment",
+                "reason": (
+                    f"Stage 3 provided {len(self._upstream_feature_names_final_)} final feature names; "
+                    "used to sanity-check feature importance column alignment"
+                ),
+            })
 
     def _validate_inputs(
         self,
@@ -656,6 +1024,10 @@ Recommend a concise shortlist for the current phase.
             requested_set = set(requested_names)
             models = [model for model in models if model.name in requested_set]
 
+        # Filter models skipped due to upstream context (data-scale rules)
+        if self._upstream_skip_models_:
+            models = [m for m in models if m.name not in self._upstream_skip_models_]
+
         llm_recommendations = self.llm_plan_.get("recommended_models", [])
         if llm_recommendations:
             # Issue #6: validate LLM names against available registry; record unrecognized names
@@ -739,17 +1111,18 @@ Recommend a concise shortlist for the current phase.
             )
 
         if LGBMClassifier is not None:
+            lgbm_kwargs: Dict[str, Any] = {
+                "n_estimators": 300,
+                "learning_rate": 0.05,
+                "random_state": self.config.random_state,
+                "verbose": -1,
+            }
+            if self._upstream_apply_balanced_lightgbm_:
+                lgbm_kwargs["class_weight"] = "balanced"
             models.append(
                 CandidateModel(
                     name="lightgbm",
-                    estimator=self._make_numeric_pipeline(
-                        LGBMClassifier(
-                            n_estimators=300,
-                            learning_rate=0.05,
-                            random_state=self.config.random_state,
-                            verbose=-1,
-                        )
-                    ),
+                    estimator=self._make_numeric_pipeline(LGBMClassifier(**lgbm_kwargs)),
                 )
             )
 
@@ -880,25 +1253,21 @@ Recommend a concise shortlist for the current phase.
         }
         return row, estimator, predictions
 
-    def _scoring_metrics(self, y_train: pd.Series) -> Dict[str, Any]:
+    def _scoring_metrics(self, y_train: pd.Series) -> Dict[str, str]:
         if self.config.problem_type == "classification":
             n_classes = y_train.nunique()
             binary = n_classes == 2
-            if binary:
-                pl = self.pos_label_
-                return {
-                    "accuracy": "accuracy",
-                    "precision": make_scorer(precision_score, pos_label=pl, zero_division=0),
-                    "recall": make_scorer(recall_score, pos_label=pl, zero_division=0),
-                    "f1": make_scorer(f1_score, pos_label=pl, zero_division=0),
-                    "roc_auc": "roc_auc",
-                }
+            # P0: multi-class requires averaging; binary uses default (no average kwarg needed)
+            roc_auc_scorer = "roc_auc" if binary else "roc_auc_ovr_weighted"
+            precision_scorer = "precision" if binary else "precision_weighted"
+            recall_scorer = "recall" if binary else "recall_weighted"
+            f1_scorer = "f1" if binary else "f1_weighted"
             return {
                 "accuracy": "accuracy",
-                "precision": "precision_weighted",
-                "recall": "recall_weighted",
-                "f1": "f1_weighted",
-                "roc_auc": "roc_auc_ovr_weighted",
+                "precision": precision_scorer,
+                "recall": recall_scorer,
+                "f1": f1_scorer,
+                "roc_auc": roc_auc_scorer,
             }
         return {
             "neg_rmse": "neg_root_mean_squared_error",
@@ -1003,15 +1372,12 @@ Recommend a concise shortlist for the current phase.
         n_classes = len(np.unique(y_true))
         binary = n_classes == 2
         # P0 + P3: use correct averaging for multi-class; roc_auc uses full prob matrix
-        if binary:
-            avg_kwargs = {"average": "binary", "pos_label": self.pos_label_}
-        else:
-            avg_kwargs = {"average": "weighted"}
+        avg = "binary" if binary else "weighted"
         metrics = {
             "test_accuracy": float(accuracy_score(y_true, y_pred)),
-            "test_precision": float(precision_score(y_true, y_pred, zero_division=0, **avg_kwargs)),
-            "test_recall": float(recall_score(y_true, y_pred, zero_division=0, **avg_kwargs)),
-            "test_f1": float(f1_score(y_true, y_pred, zero_division=0, **avg_kwargs)),
+            "test_precision": float(precision_score(y_true, y_pred, average=avg, zero_division=0)),
+            "test_recall": float(recall_score(y_true, y_pred, average=avg, zero_division=0)),
+            "test_f1": float(f1_score(y_true, y_pred, average=avg, zero_division=0)),
             "test_roc_auc": np.nan,
         }
         if y_score is not None:
@@ -1062,6 +1428,7 @@ Recommend a concise shortlist for the current phase.
         y_test: Optional[pd.Series],
         prediction_outputs: Dict[str, Dict[str, List[Any]]],
         feature_names: List[str],
+        threshold_optimization: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         if X_test is None or y_test is None or not self.best_model_name_:
             return {}
@@ -1087,6 +1454,8 @@ Recommend a concise shortlist for the current phase.
             diagnostics["confusion_matrix"] = confusion_matrix(y_test, y_pred, labels=labels).tolist()
             diagnostics["labels"] = labels
             diagnostics["class_distribution_test"] = pd.Series(y_test).value_counts(dropna=False).to_dict()
+            if threshold_optimization and threshold_optimization.get("enabled"):
+                diagnostics["threshold_optimization"] = threshold_optimization
         else:
             residuals = pd.Series(y_test).reset_index(drop=True) - pd.Series(y_pred)
             diagnostics["residual_summary"] = {
@@ -1097,6 +1466,189 @@ Recommend a concise shortlist for the current phase.
             }
 
         return diagnostics
+
+    def _compute_threshold_optimization(
+        self,
+        X_train: pd.DataFrame,
+        y_train: pd.Series,
+        y_test: pd.Series,
+        test_scores: np.ndarray,
+    ) -> Dict[str, Any]:
+        """Binary classification threshold optimisation (literature-standard, OOF-based).
+
+        Uses out-of-fold (OOF) probabilities from the best model to fit the
+        decision threshold, eliminating test-set leakage in threshold selection.
+
+        Four methods are computed and all results are reported:
+
+        Youden's J  — argmax(Sensitivity + Specificity − 1) via ROC curve.
+                      Maximises information gain; standard in medical diagnostics
+                      (Youden, 1950; Fluss et al., 2005).
+        F1-optimal  — argmax F₁ via precision-recall curve (exact, no grid search).
+                      Preferred when class imbalance is present (Davis & Goadrich 2006).
+        G-mean      — argmax √(TPR × TNR) via ROC curve.
+                      Geometric mean; robust to severe imbalance (Kubat & Matwin 1997).
+        MCC-optimal — argmax Matthews Correlation Coefficient via candidate thresholds.
+                      Single best metric for imbalanced binary problems
+                      (Chicco & Jurman, BMC Genomics 2020).
+
+        The *selected* threshold is the one that directly optimises
+        ``self.config.resolved_primary_metric()``:
+          roc_auc / accuracy → Youden's J
+          f1 / precision / recall → F1-optimal
+
+        Returns
+        -------
+        Dict with keys: enabled, oof_n_samples, primary_metric, selected_method,
+        selected_threshold, methods, test_metrics_at_default_0.5,
+        test_metrics_at_optimal.
+        """
+        # ── Step 1: OOF probabilities via cross_val_predict ────────────────
+        cv = self._cross_validator(y_train)
+        try:
+            oof_probs = cross_val_predict(
+                clone(self.best_model_),
+                X_train,
+                y_train,
+                cv=cv,
+                method="predict_proba",
+                n_jobs=1,
+            )
+        except Exception as exc:  # noqa: BLE001
+            return {"enabled": False, "reason": f"OOF CV failed: {exc}"}
+
+        oof_scores: np.ndarray = (
+            oof_probs[:, 1] if oof_probs.ndim == 2 else oof_probs.ravel()
+        )
+        y_train_arr = np.asarray(y_train)
+
+        # ── Step 2: per-method optimal thresholds ─────────────────────────
+        methods: Dict[str, Any] = {}
+
+        # Youden's J  (ROC curve)
+        try:
+            fpr, tpr, roc_thresh = roc_curve(y_train_arr, oof_scores)
+            j = tpr - fpr
+            j_idx = int(np.argmax(j))
+            methods["youden_j"] = {
+                "threshold": float(roc_thresh[j_idx]),
+                "sensitivity": float(tpr[j_idx]),
+                "specificity": float(1.0 - fpr[j_idx]),
+                "j_statistic": float(j[j_idx]),
+                "reference": "Youden (1950); Fluss et al. (2005)",
+            }
+        except Exception as exc:  # noqa: BLE001
+            methods["youden_j"] = {"error": str(exc)}
+
+        # F1-optimal  (precision-recall curve — exact, no brute-force grid)
+        try:
+            prec_arr, rec_arr, pr_thresh = precision_recall_curve(y_train_arr, oof_scores)
+            # precision_recall_curve returns n+1 precision/recall points for n thresholds
+            denom = prec_arr[:-1] + rec_arr[:-1]
+            f1_arr = np.where(
+                denom > 0,
+                2.0 * prec_arr[:-1] * rec_arr[:-1] / denom,
+                0.0,
+            )
+            if len(f1_arr) > 0:
+                f1_idx = int(np.argmax(f1_arr))
+                methods["f1_optimal"] = {
+                    "threshold": float(pr_thresh[f1_idx]),
+                    "f1": float(f1_arr[f1_idx]),
+                    "precision": float(prec_arr[f1_idx]),
+                    "recall": float(rec_arr[f1_idx]),
+                    "reference": "Davis & Goadrich (2006)",
+                }
+            else:
+                methods["f1_optimal"] = {"error": "empty PR curve"}
+        except Exception as exc:  # noqa: BLE001
+            methods["f1_optimal"] = {"error": str(exc)}
+
+        # G-mean  (ROC curve)
+        try:
+            g_mean_arr = np.sqrt(tpr * np.maximum(0.0, 1.0 - fpr))
+            g_idx = int(np.argmax(g_mean_arr))
+            methods["g_mean"] = {
+                "threshold": float(roc_thresh[g_idx]),
+                "g_mean": float(g_mean_arr[g_idx]),
+                "sensitivity": float(tpr[g_idx]),
+                "specificity": float(1.0 - fpr[g_idx]),
+                "reference": "Kubat & Matwin (1997)",
+            }
+        except Exception as exc:  # noqa: BLE001
+            methods["g_mean"] = {"error": str(exc)}
+
+        # MCC-optimal  (candidate-threshold scan — deduplicated + bounded)
+        try:
+            candidate_thresh = np.unique(oof_scores)
+            if len(candidate_thresh) > 500:
+                candidate_thresh = np.percentile(oof_scores, np.linspace(1, 99, 300))
+            mcc_vals = np.array(
+                [
+                    matthews_corrcoef(y_train_arr, (oof_scores >= t).astype(int))
+                    for t in candidate_thresh
+                ]
+            )
+            mcc_idx = int(np.argmax(mcc_vals))
+            methods["mcc_optimal"] = {
+                "threshold": float(candidate_thresh[mcc_idx]),
+                "mcc": float(mcc_vals[mcc_idx]),
+                "reference": "Chicco & Jurman (BMC Genomics 2020)",
+            }
+        except Exception as exc:  # noqa: BLE001
+            methods["mcc_optimal"] = {"error": str(exc)}
+
+        # ── Step 3: select primary threshold ──────────────────────────────
+        primary = self.config.resolved_primary_metric()
+        method_map = {
+            "roc_auc":  "youden_j",
+            "accuracy": "youden_j",
+            "f1":       "f1_optimal",
+            "precision":"f1_optimal",
+            "recall":   "f1_optimal",
+        }
+        selected_method = method_map.get(primary, "youden_j")
+        selected_entry = methods.get(selected_method, {})
+        if "error" in selected_entry:
+            # fallback to Youden's J
+            selected_method = "youden_j"
+            selected_entry = methods.get("youden_j", {})
+        selected_threshold = float(selected_entry.get("threshold", 0.5))
+
+        # ── Step 4: test-set metrics at default 0.5 vs optimal threshold ──
+        y_test_arr = np.asarray(y_test)
+
+        def _test_metrics_at(t: float) -> Dict[str, Any]:
+            y_pred_t = (test_scores >= t).astype(int)
+            return {
+                "threshold": round(float(t), 6),
+                "accuracy":  round(float(accuracy_score(y_test_arr, y_pred_t)), 6),
+                "precision": round(float(precision_score(y_test_arr, y_pred_t, zero_division=0)), 6),
+                "recall":    round(float(recall_score(y_test_arr, y_pred_t, zero_division=0)), 6),
+                "f1":        round(float(f1_score(y_test_arr, y_pred_t, zero_division=0)), 6),
+                "mcc":       round(float(matthews_corrcoef(y_test_arr, y_pred_t)), 6),
+            }
+
+        at_default = _test_metrics_at(0.5)
+        at_optimal = _test_metrics_at(selected_threshold)
+
+        # delta shows per-metric absolute improvement at optimal vs default
+        delta = {
+            k: round(at_optimal[k] - at_default[k], 6)
+            for k in ("accuracy", "precision", "recall", "f1", "mcc")
+        }
+
+        return {
+            "enabled": True,
+            "oof_n_samples": int(len(oof_scores)),
+            "primary_metric": primary,
+            "selected_method": selected_method,
+            "selected_threshold": round(selected_threshold, 6),
+            "methods": methods,
+            "test_metrics_at_default_0.5": at_default,
+            "test_metrics_at_optimal": at_optimal,
+            "delta_optimal_vs_default": delta,
+        }
 
     def _extract_feature_importance(self, feature_names: pd.Index) -> pd.DataFrame:
         if self.best_model_ is None:
@@ -1167,6 +1719,7 @@ Recommend a concise shortlist for the current phase.
             "tuning_models_tuned": len(
                 [s for s in self.tuning_summary_.values() if isinstance(s, dict) and s.get("status") == "ok"]
             ),
+            "planner_input_source": self.planner_input_.source if self.planner_input_ is not None else None,
         }
 
     def _build_metadata(self, feature_metadata: Optional[Dict[str, Any]]) -> Dict[str, Any]:
@@ -1182,6 +1735,8 @@ Recommend a concise shortlist for the current phase.
             "upstream_feature_metadata": feature_metadata,
             "tuning_config": asdict(self.tuning_config),
             "tuning_enabled": self.tuning_config.enable_tuning,
+            "planner_input_source": self.planner_input_.source if self.planner_input_ is not None else None,
+            "planner_input_available": self.planner_input_ is not None,
         }
 
     def _data_quality_warnings(
@@ -1256,6 +1811,24 @@ Recommend a concise shortlist for the current phase.
                 result["tuning_summary"], result.get("tuning_history", {})
             )
 
+        if self.planner_input_ is not None:
+            with open(output_dir / "planner_input.json", "w", encoding="utf-8") as file:
+                json.dump(
+                    asdict(self.planner_input_), file, ensure_ascii=False, indent=2, default=json_default
+                )
+
+        if self.threshold_optimization_.get("enabled"):
+            with open(output_dir / "threshold_optimization.json", "w", encoding="utf-8") as file:
+                json.dump(
+                    self.threshold_optimization_, file, ensure_ascii=False, indent=2, default=json_default
+                )
+
+        if self.stage_handoff_:
+            with open(output_dir / "stage_handoff.json", "w", encoding="utf-8") as file:
+                json.dump(
+                    self.stage_handoff_, file, ensure_ascii=False, indent=2, default=json_default
+                )
+
     def explain(self) -> str:
         if not self.summary_:
             return "Modelling summary is not available yet."
@@ -1275,11 +1848,32 @@ Recommend a concise shortlist for the current phase.
         if self.tuning_summary_:
             n_ok = len([s for s in self.tuning_summary_.values() if isinstance(s, dict) and s.get("status") == "ok"])
             lines.append(f"- Tuning: {n_ok} model(s) tuned via Optuna")
+        if self.planner_input_ is not None:
+            lines.append(f"- Planner input: {self.planner_input_.source}")
+        if self.best_threshold_ is not None:
+            method = self.threshold_optimization_.get("selected_method", "n/a")
+            delta_f1 = self.threshold_optimization_.get("delta_optimal_vs_default", {}).get("f1", 0.0)
+            lines.append(
+                f"- Optimal threshold: {self.best_threshold_:.4f}"
+                f" (method: {method}, ΔF1 vs 0.5: {delta_f1:+.4f})"
+            )
         return "\n".join(lines)
 
     # ──────────────────────────────────────────────────────────────────────────
     # Stage 2 tuning helpers
     # ──────────────────────────────────────────────────────────────────────────
+
+    def _normalize_tuning_score(self, raw_optuna_score: float) -> float:
+        """Convert a raw Optuna objective value to the same scale as leaderboard cv_* columns.
+
+        Optuna always maximizes.  For regression metrics stored as negated values
+        (neg_rmse, neg_mae), the raw study.best_value is negative.  The
+        leaderboard stores the absolute value (positive RMSE / MAE).
+        roc_auc / r2 / accuracy / f1 are already in a natural range — returned as-is.
+        """
+        if self.config.resolved_primary_metric() in {"rmse", "mae"}:
+            return abs(raw_optuna_score)
+        return raw_optuna_score
 
     def _resolve_trial_budget(self, n_samples: int, intensity: str) -> tuple[int, int]:
         """Return (n_trials, cv_folds_tuning) based on dataset size and intensity."""

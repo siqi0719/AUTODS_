@@ -2,7 +2,8 @@
 """
 AUTODS 0.0.1
 """
-
+import httpx
+http_client = httpx.Client(transport=httpx.HTTPTransport(local_address="0.0.0.0"))
 import sys
 import os
 import pandas as pd
@@ -85,7 +86,7 @@ except ImportError as e:
 print("🔧 step 3：config...")
 
 config = PipelineConfig()
-config.data_path = "adult.csv"
+config.data_path = "rental_training.csv"
 # config.csv_sep is None by default — the pipeline auto-detects the separator.
 # Override only when auto-detection fails, e.g.:
 #   config.csv_sep = ";"   # for Bank Marketing and other semicolon-delimited files
@@ -97,29 +98,13 @@ config.random_state = 42
 # If you already know target_column / problem_type, set them here and the Planner
 # will keep your values and only fill in the rest.
 config.business_description = (
-    "This is the UCI Adult (Census Income) dataset extracted from the 1994 US Census database. "
-    "The goal is to predict whether a person's annual income exceeds $50,000 (binary classification). "
-    "The target column is 'income' (values: '>50K' or '<=50K'). "
-    "Input features include demographic and employment information: "
-    "age, workclass, fnlwgt (census sampling weight), education, education-num, "
-    "marital-status, occupation, relationship, race, sex, "
-    "capital-gain, capital-loss, hours-per-week, and native-country. "
-    "The dataset has approximately 48,842 instances with a mix of continuous and categorical features. "
-    "Some records contain unknown values denoted by '?' — these should be treated as a separate "
-    "category for categorical features rather than dropped. "
-    "The class distribution is heavily imbalanced: approximately 24% earn >50K and 76% earn <=50K, "
-    "so ROC-AUC and F1-score are preferred over accuracy as primary metrics. "
-    "The positive class is '>50K'. "
-    "Interpretability is important as this is a socioeconomic prediction task — "
-    "Logistic Regression, Decision Tree, and Random Forest are preferred. "
-    "Note that 'fnlwgt' is a census sampling weight, not a predictive demographic feature, "
-    "and may be excluded or treated with caution."
+"I'm a real estate agent, and I need you to analyze this data for me and tell me what to do next."
 )
 config.use_planner = True   # set False to skip Stage 0 entirely
 
 # Optional: override Planner's inference if you already know these values.
-config.target_column = "15"             # keep None to let Planner infer
-config.problem_type = "classification" # keep None to let Planner infer
+config.target_column = "rent"             # keep None to let Planner infer
+config.problem_type = "regression" # keep None to let Planner infer
 # ─────────────────────────────────────────────────────────────────────────────
 
 print(f"✓ finished: {config.data_path} | target: {config.target_column}\n")

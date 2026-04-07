@@ -9,12 +9,18 @@ produces technical and business-facing Markdown reports.
 import argparse
 import json
 import os
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass, field, replace as dataclass_replace
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Mapping, Optional, Union
+from typing import Any, Dict, List, Mapping, Optional, Union
 
 from dotenv import load_dotenv
+from utils import load_project_env, reexec_with_project_venv
+
+
+if __name__ == "__main__":
+    reexec_with_project_venv(__file__)
+load_project_env(__file__)
 
 try:
     from langchain_core.output_parsers import StrOutputParser
@@ -30,8 +36,31 @@ except Exception as exc:
     LANGCHAIN_AVAILABLE = False
     LANGCHAIN_IMPORT_ERROR = exc
 
+try:
+    from openai_compatible_chat import OpenAICompatibleChatClient
 
+    OPENAI_COMPATIBLE_CHAT_AVAILABLE = True
+    OPENAI_COMPATIBLE_CHAT_IMPORT_ERROR = None
+except Exception as exc:
+    OpenAICompatibleChatClient = None
+    OPENAI_COMPATIBLE_CHAT_AVAILABLE = False
+    OPENAI_COMPATIBLE_CHAT_IMPORT_ERROR = exc
+
+
+PROJECT_ROOT = Path(__file__).resolve().parent
+load_dotenv(PROJECT_ROOT / ".env")
 load_dotenv()
+
+
+@dataclass
+class DirectPromptChain:
+    prompt_template: str
+    client: Any
+
+    def invoke(self, payload: Dict[str, str]) -> str:
+        prompt = self.prompt_template.format(**payload)
+        response = self.client.invoke([{"role": "user", "content": prompt}])
+        return str(getattr(response, "content", response))
 
 
 ReportInput = Union[str, os.PathLike[str], Mapping[str, Any]]
@@ -47,6 +76,232 @@ class ReportGeneratorConfig:
     require_llm: bool = False
     force_template_mode: bool = False
     business_include_technical_context: bool = False
+
+
+@dataclass
+class ReportPlannerInput:
+    """Structured report-planning contract from an upstream planner."""
+
+    source: str = "unknown"
+    schema_version: str = "1.0"
+    rationale: str = ""
+
+    report_language: Optional[str] = None
+    llm_model: Optional[str] = None
+    technical_temperature: Optional[float] = None
+    business_temperature: Optional[float] = None
+    business_include_technical_context: Optional[bool] = None
+
+    use_case: Optional[str] = None
+    industry: Optional[str] = None
+    target_audience: Optional[str] = None
+    stakeholders: Optional[List[str]] = None
+    business_goal: Optional[str] = None
+    project_objective: Optional[str] = None
+
+    required_sections: Optional[List[str]] = None
+    technical_instructions: Optional[List[str]] = None
+    business_instructions: Optional[List[str]] = None
+    planner_review: Optional[Dict[str, Any]] = None
+    planner_plan: Optional[Dict[str, Any]] = None
+
+    extra: Dict[str, Any] = field(default_factory=dict)
+
+    @staticmethod
+    def _coerce_list(value: Any) -> Optional[List[Any]]:
+        if value is None:
+            return None
+        if isinstance(value, list):
+            return value
+        return [value]
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "ReportPlannerInput":
+        report_block = data.get("report", {})
+        business_block = data.get("business_context", data.get("business", {}))
+        instructions_block = data.get("instructions", {})
+        planner_block = data.get("planner", {})
+        review_block = data.get("planner_review", planner_block.get("review", {}))
+        plan_block = data.get("planner_plan", planner_block.get("plan", {}))
+
+        def _flat_or_block(flat_key: str, *blocks: Dict[str, Any]) -> Any:
+            if flat_key in data:
+                return data[flat_key]
+            for block in blocks:
+                if isinstance(block, dict) and flat_key in block:
+                    return block.get(flat_key)
+            return None
+
+        def _bool_or_block(flat_key: str, *blocks: Dict[str, Any]) -> Optional[bool]:
+            if flat_key in data:
+                return bool(data[flat_key])
+            for block in blocks:
+                if isinstance(block, dict) and flat_key in block:
+                    return bool(block[flat_key])
+            return None
+
+        technical_instructions = cls._coerce_list(
+            _flat_or_block("technical_instructions", instructions_block, report_block)
+        )
+        if technical_instructions is None and isinstance(instructions_block, dict):
+            technical_instructions = cls._coerce_list(
+                instructions_block.get("technical")
+            )
+
+        business_instructions = cls._coerce_list(
+            _flat_or_block("business_instructions", instructions_block, report_block)
+        )
+        if business_instructions is None and isinstance(instructions_block, dict):
+            business_instructions = cls._coerce_list(
+                instructions_block.get("business")
+            )
+
+        known_keys = {
+            "schema_version",
+            "source",
+            "rationale",
+            "report",
+            "business_context",
+            "business",
+            "instructions",
+            "planner",
+            "planner_review",
+            "planner_plan",
+            "report_language",
+            "llm_model",
+            "technical_temperature",
+            "business_temperature",
+            "business_include_technical_context",
+            "use_case",
+            "industry",
+            "target_audience",
+            "stakeholders",
+            "business_goal",
+            "project_objective",
+            "required_sections",
+            "technical_instructions",
+            "business_instructions",
+        }
+
+        planner_review = dict(review_block) if isinstance(review_block, dict) else None
+        planner_plan = dict(plan_block) if isinstance(plan_block, dict) else None
+
+        return cls(
+            schema_version=data.get("schema_version", "1.0"),
+            source=data.get("source", "unknown"),
+            rationale=data.get("rationale", ""),
+            report_language=_flat_or_block("report_language", report_block),
+            llm_model=_flat_or_block("llm_model", report_block),
+            technical_temperature=_flat_or_block(
+                "technical_temperature", report_block
+            ),
+            business_temperature=_flat_or_block(
+                "business_temperature", report_block
+            ),
+            business_include_technical_context=_bool_or_block(
+                "business_include_technical_context", report_block
+            ),
+            use_case=_flat_or_block("use_case", business_block),
+            industry=_flat_or_block("industry", business_block),
+            target_audience=_flat_or_block("target_audience", business_block),
+            stakeholders=cls._coerce_list(_flat_or_block("stakeholders", business_block)),
+            business_goal=_flat_or_block("business_goal", business_block),
+            project_objective=_flat_or_block("project_objective", business_block),
+            required_sections=cls._coerce_list(
+                _flat_or_block("required_sections", report_block, instructions_block)
+            ),
+            technical_instructions=technical_instructions,
+            business_instructions=business_instructions,
+            planner_review=planner_review,
+            planner_plan=planner_plan,
+            extra={k: v for k, v in data.items() if k not in known_keys},
+        )
+
+    @classmethod
+    def from_json_file(cls, path: Union[str, os.PathLike[str]]) -> "ReportPlannerInput":
+        with open(path, "r", encoding="utf-8") as file:
+            data = json.load(file)
+        return cls.from_dict(data)
+
+    def apply_to_config(self, config: ReportGeneratorConfig) -> ReportGeneratorConfig:
+        overrides: Dict[str, Any] = {}
+        if self.report_language:
+            overrides["report_language"] = self.report_language
+        if self.llm_model:
+            overrides["llm_model"] = self.llm_model
+        if self.technical_temperature is not None:
+            overrides["technical_temperature"] = self.technical_temperature
+        if self.business_temperature is not None:
+            overrides["business_temperature"] = self.business_temperature
+        if self.business_include_technical_context is not None:
+            overrides["business_include_technical_context"] = (
+                self.business_include_technical_context
+            )
+        return dataclass_replace(config, **overrides) if overrides else config
+
+    def merge_into_json(self, json_data: Dict[str, Any]) -> Dict[str, Any]:
+        merged = dict(json_data)
+        business_context = dict(merged.get("business_context") or {})
+        planner_review = dict(merged.get("planner_review") or {})
+        planner_plan = dict(merged.get("planner_plan") or {})
+        report_planner = dict(merged.get("report_planner") or {})
+
+        if self.use_case is not None:
+            business_context["use_case"] = self.use_case
+        if self.industry is not None:
+            business_context["industry"] = self.industry
+        if self.target_audience is not None:
+            business_context["target_audience"] = self.target_audience
+        if self.stakeholders is not None:
+            business_context["stakeholders"] = self.stakeholders
+        if self.business_goal is not None:
+            business_context["business_goal"] = self.business_goal
+        if self.project_objective is not None:
+            business_context["project_objective"] = self.project_objective
+        if self.report_language is not None:
+            business_context["report_language"] = self.report_language
+
+        if self.planner_review:
+            planner_review.update(self.planner_review)
+        if self.planner_plan:
+            planner_plan.update(self.planner_plan)
+        if self.rationale and "review_text" not in planner_review:
+            planner_review["review_text"] = self.rationale
+
+        report_planner.update(
+            {
+                "source": self.source,
+                "schema_version": self.schema_version,
+            }
+        )
+        if self.rationale:
+            report_planner["rationale"] = self.rationale
+        if self.required_sections is not None:
+            report_planner["required_sections"] = self.required_sections
+        if self.technical_instructions is not None:
+            report_planner["technical_instructions"] = self.technical_instructions
+        if self.business_instructions is not None:
+            report_planner["business_instructions"] = self.business_instructions
+        if self.extra:
+            report_planner["extra"] = self.extra
+
+        merged["business_context"] = business_context
+        if planner_review:
+            merged["planner_review"] = planner_review
+        if planner_plan:
+            merged["planner_plan"] = planner_plan
+        merged["report_planner"] = report_planner
+        return merged
+
+
+def load_report_planner_input(path: Union[str, os.PathLike[str]]) -> ReportPlannerInput:
+    planner_path = Path(path)
+    if not planner_path.exists():
+        raise FileNotFoundError(f"Planner input file not found: {planner_path}")
+    planner_input = ReportPlannerInput.from_json_file(planner_path)
+    extra = dict(planner_input.extra)
+    extra.setdefault("loaded_from_path", str(planner_path.resolve()))
+    return dataclass_replace(planner_input, extra=extra)
 
 
 class MultiAgentReportGenerator:
@@ -85,6 +340,7 @@ class MultiAgentReportGenerator:
         self,
         config: Optional[ReportGeneratorConfig] = None,
         openai_api_key: Optional[str] = None,
+        planner_input: Optional[ReportPlannerInput] = None,
     ):
         default_config = ReportGeneratorConfig(
             output_dir="reports",
@@ -93,7 +349,11 @@ class MultiAgentReportGenerator:
                 "REPORT_LANGUAGE", ReportGeneratorConfig.report_language
             ),
         )
-        self.config = config or default_config
+        resolved_config = config or default_config
+        self.planner_input_: Optional[ReportPlannerInput] = planner_input
+        if planner_input is not None:
+            resolved_config = planner_input.apply_to_config(resolved_config)
+        self.config = resolved_config
 
         if self.config.require_llm and self.config.force_template_mode:
             raise ValueError(
@@ -105,9 +365,12 @@ class MultiAgentReportGenerator:
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.langchain_available = LANGCHAIN_AVAILABLE
         self.generation_mode = "template"
-        self.llm_enabled = self.langchain_available and not self._is_placeholder_key(
-            self.api_key
+        # LLM is enabled when LangChain is available AND at least one API key exists
+        _has_key = (
+            bool(os.getenv("DASHSCOPE_API_KEY", ""))
+            or not self._is_placeholder_key(self.api_key)
         )
+        self.llm_enabled = self.langchain_available and _has_key
         self._llm_disabled_reason: Optional[str] = None
         self._mode_announced = False
 
@@ -115,6 +378,7 @@ class MultiAgentReportGenerator:
         self.llm_business = None
         self.technical_chain = None
         self.business_chain = None
+        self.llm_backend = "template"
 
         if self.config.force_template_mode:
             self.llm_enabled = False
@@ -128,7 +392,7 @@ class MultiAgentReportGenerator:
                     f"({LANGCHAIN_IMPORT_ERROR})."
                 )
             else:
-                self._llm_disabled_reason = "No valid OPENAI_API_KEY detected."
+                self._llm_disabled_reason = "No valid API key detected (set DASHSCOPE_API_KEY or OPENAI_API_KEY)."
             if self.config.require_llm:
                 if not self.langchain_available:
                     raise ValueError(
@@ -136,7 +400,7 @@ class MultiAgentReportGenerator:
                         f"Import error: {LANGCHAIN_IMPORT_ERROR}"
                     )
                 raise ValueError(
-                    "Set a valid OPENAI_API_KEY or disable require_llm to use template mode."
+                    "Set DASHSCOPE_API_KEY (Qwen) or OPENAI_API_KEY, or disable require_llm."
                 )
             return
 
@@ -164,40 +428,93 @@ class MultiAgentReportGenerator:
         )
 
     def _setup_chains(self) -> None:
-        if not self.langchain_available:
-            raise RuntimeError(
-                "LangChain dependencies are unavailable, so LLM-backed report "
-                "generation cannot be initialized."
+        langchain_error: Optional[Exception] = None
+        technical_prompt_text = self._get_technical_report_prompt()
+        business_prompt_text = self._get_business_translation_prompt()
+
+        if self.langchain_available:
+            try:
+                technical_prompt = ChatPromptTemplate.from_messages(
+                    [("human", technical_prompt_text)]
+                )
+                business_prompt = ChatPromptTemplate.from_messages(
+                    [("human", business_prompt_text)]
+                )
+
+                from utils import build_chat_llm
+                self.llm_technical = build_chat_llm(
+                    model=self.config.llm_model,
+                    temperature=self.config.technical_temperature,
+                )
+                self.llm_business = build_chat_llm(
+                    model=self.config.llm_model,
+                    temperature=self.config.business_temperature,
+                )
+                if self.llm_technical is None or self.llm_business is None:
+                    raise RuntimeError("No LLM available (set DASHSCOPE_API_KEY or OPENAI_API_KEY).")
+
+                self.technical_chain = (
+                    technical_prompt | self.llm_technical | StrOutputParser()
+                )
+                self.business_chain = (
+                    business_prompt | self.llm_business | StrOutputParser()
+                )
+                self.llm_backend = "langchain"
+                return
+            except Exception as exc:
+                langchain_error = exc
+        else:
+            langchain_error = RuntimeError(
+                "LangChain dependencies are unavailable "
+                f"({LANGCHAIN_IMPORT_ERROR})."
             )
-        technical_prompt = ChatPromptTemplate.from_messages(
-            [("human", self._get_technical_report_prompt())]
-        )
-        business_prompt = ChatPromptTemplate.from_messages(
-            [("human", self._get_business_translation_prompt())]
-        )
 
-        self.llm_technical = ChatOpenAI(
+        if not OPENAI_COMPATIBLE_CHAT_AVAILABLE:
+            raise RuntimeError(
+                "Unable to initialize LLM chains. "
+                f"LangChain backend failed: {langchain_error}. "
+                "OpenAI-compatible fallback client is unavailable "
+                f"({OPENAI_COMPATIBLE_CHAT_IMPORT_ERROR})."
+            )
+
+        base_url = os.getenv("OPENAI_BASE_URL")
+        timeout_raw = os.getenv("OPENAI_TIMEOUT", "30")
+        try:
+            timeout = float(timeout_raw)
+        except ValueError:
+            timeout = 30.0
+
+        self.llm_technical = OpenAICompatibleChatClient(
             model=self.config.llm_model,
+            api_key=self.api_key,
+            base_url=base_url,
             temperature=self.config.technical_temperature,
-            openai_api_key=self.api_key,
+            timeout=timeout,
         )
-        self.llm_business = ChatOpenAI(
+        self.llm_business = OpenAICompatibleChatClient(
             model=self.config.llm_model,
+            api_key=self.api_key,
+            base_url=base_url,
             temperature=self.config.business_temperature,
-            openai_api_key=self.api_key,
+            timeout=timeout,
         )
-
-        self.technical_chain = (
-            technical_prompt | self.llm_technical | StrOutputParser()
+        self.technical_chain = DirectPromptChain(
+            technical_prompt_text,
+            self.llm_technical,
         )
-        self.business_chain = business_prompt | self.llm_business | StrOutputParser()
+        self.business_chain = DirectPromptChain(
+            business_prompt_text,
+            self.llm_business,
+        )
+        self.llm_backend = "openai_compatible"
 
     def _announce_generation_mode(self) -> None:
         if self._mode_announced:
             return
         if self.llm_enabled:
             print(
-                f"Using LLM-backed report generation with model '{self.config.llm_model}'."
+                "Using LLM-backed report generation with model "
+                f"'{self.config.llm_model}' via backend '{self.llm_backend}'."
             )
         else:
             reason = self._llm_disabled_reason or "No valid OPENAI_API_KEY detected."
@@ -513,7 +830,7 @@ class MultiAgentReportGenerator:
         schema_kind = self._detect_schema_kind(json_data)
 
         if schema_kind == "normalized":
-            normalized = json_data
+            normalized = self._normalize_legacy_normalized_schema(json_data)
         elif schema_kind == "source_new":
             normalized = self._normalize_new_schema(json_data)
         else:
@@ -525,7 +842,288 @@ class MultiAgentReportGenerator:
                 "(project_info/dataset_summary/...)."
             )
 
+        if self.planner_input_ is not None:
+            normalized = self.planner_input_.merge_into_json(normalized)
+
         self.validate_input_json(normalized)
+        return normalized
+
+    def _normalize_legacy_normalized_schema(
+        self, json_data: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        normalized = dict(json_data)
+
+        meta = dict(normalized.get("meta") or {})
+        data_understanding = dict(normalized.get("data_understanding") or {})
+        data_cleaning = dict(normalized.get("data_cleaning") or {})
+        feature_engineering = dict(normalized.get("feature_engineering") or {})
+        modeling = dict(normalized.get("modeling") or {})
+        evaluation = dict(normalized.get("evaluation") or {})
+        business_context = dict(normalized.get("business_context") or {})
+        planner_plan = dict(normalized.get("planner_plan") or {})
+
+        understanding_result = (
+            data_understanding.get("result")
+            if isinstance(data_understanding.get("result"), dict)
+            else {}
+        )
+        data_profile = understanding_result.get("data_profile", {})
+        data_quality_report = understanding_result.get("data_quality_report", {})
+        target_analysis = understanding_result.get("target_analysis", {})
+        understanding_summary = understanding_result.get(
+            "data_understanding_summary", {}
+        )
+        diagnostics = modeling.get("diagnostics", {})
+        best_model_metrics = modeling.get("best_model_metrics", {})
+        evaluation_selection = evaluation.get("best_model_selection_evidence", {})
+        best_model_evaluation = evaluation.get("best_model_evaluation", {})
+        best_model_eval_metrics = best_model_evaluation.get("metrics", {})
+        best_model_eval_diagnostics = best_model_evaluation.get("diagnostics", {})
+
+        if "project_theme" not in meta and meta.get("project_name"):
+            meta["project_theme"] = meta.get("project_name")
+        if "pipeline_id" not in meta and meta.get("project_name"):
+            meta["pipeline_id"] = str(meta.get("project_name")).lower().replace(" ", "_")
+        if "dataset_source" not in meta and data_understanding.get("output_dir"):
+            meta["dataset_source"] = data_understanding.get("output_dir")
+        if "target_variable" not in meta:
+            meta["target_variable"] = self._first_non_empty(
+                target_analysis.get("target_column"),
+                feature_engineering.get("target_column"),
+                planner_plan.get("target_column"),
+            )
+        if "task_type" not in meta:
+            meta["task_type"] = self._first_non_empty(
+                target_analysis.get("problem_type"),
+                feature_engineering.get("problem_type"),
+                modeling.get("problem_type"),
+                evaluation.get("problem_type"),
+                planner_plan.get("problem_type"),
+            )
+        if "project_description" not in meta:
+            meta["project_description"] = self._first_non_empty(
+                understanding_summary.get("executive_summary"),
+                business_context.get("project_objective"),
+                business_context.get("business_goal"),
+            )
+
+        if "n_rows" not in data_understanding and "total_samples" in data_understanding:
+            data_understanding["n_rows"] = data_understanding.get("total_samples")
+        if "n_cols" not in data_understanding and "feature_count" in data_understanding:
+            data_understanding["n_cols"] = data_understanding.get("feature_count")
+        if (
+            "class_distribution" not in data_understanding
+            and "target_distribution" in data_understanding
+        ):
+            data_understanding["class_distribution"] = data_understanding.get(
+                "target_distribution"
+            )
+        if (
+            "missing_values_summary" not in data_understanding
+            and "missing_values" in data_understanding
+        ):
+            missing_values = data_understanding.get("missing_values")
+            if isinstance(missing_values, dict):
+                data_understanding["missing_values_summary"] = missing_values
+            elif missing_values not in (None, ""):
+                data_understanding["missing_values_summary"] = {
+                    "total_missing_values": missing_values
+                }
+        if "n_rows" not in data_understanding and isinstance(data_profile.get("shape"), dict):
+            data_understanding["n_rows"] = data_profile.get("shape", {}).get("rows")
+        if "n_cols" not in data_understanding and isinstance(data_profile.get("shape"), dict):
+            data_understanding["n_cols"] = data_profile.get("shape", {}).get("columns")
+        if "feature_types" not in data_understanding and data_profile.get("feature_types"):
+            data_understanding["feature_types"] = data_profile.get("feature_types")
+        if (
+            "class_distribution" not in data_understanding
+            and target_analysis.get("class_distribution")
+        ):
+            data_understanding["class_distribution"] = target_analysis.get(
+                "class_distribution"
+            )
+        if (
+            "class_imbalance_ratio" not in data_understanding
+            and target_analysis.get("imbalance_ratio_max_over_min") is not None
+        ):
+            data_understanding["class_imbalance_ratio"] = target_analysis.get(
+                "imbalance_ratio_max_over_min"
+            )
+        if (
+            "missing_values_summary" not in data_understanding
+            and data_quality_report.get("missing_values")
+        ):
+            data_understanding["missing_values_summary"] = data_quality_report.get(
+                "missing_values"
+            )
+        if "key_insights" not in data_understanding and understanding_summary.get(
+            "major_findings"
+        ):
+            data_understanding["key_insights"] = understanding_summary.get(
+                "major_findings"
+            )
+
+        if not data_cleaning.get("quality_notes"):
+            cleaned_rows = data_cleaning.get("cleaned_rows")
+            rows_removed = data_cleaning.get("rows_removed")
+            retention_rate = data_cleaning.get("retention_rate")
+            anomalies_removed = data_cleaning.get("anomalies_removed")
+            quality_parts = []
+            if cleaned_rows not in (None, ""):
+                quality_parts.append(f"Rows after cleaning: {cleaned_rows}")
+            if rows_removed not in (None, ""):
+                quality_parts.append(f"Rows removed: {rows_removed}")
+            if retention_rate not in (None, ""):
+                quality_parts.append(f"Retention rate: {retention_rate}")
+            if anomalies_removed not in (None, ""):
+                quality_parts.append(
+                    f"Anomaly handling summary: {anomalies_removed}"
+                )
+            if quality_parts:
+                data_cleaning["quality_notes"] = ". ".join(quality_parts) + "."
+
+        if (
+            "final_feature_count" not in feature_engineering
+            and "engineered_features" in feature_engineering
+        ):
+            feature_engineering["final_feature_count"] = feature_engineering.get(
+                "engineered_features"
+            )
+        if (
+            "features_created" not in feature_engineering
+            and feature_engineering.get("final_feature_count") not in (None, "")
+        ):
+            feature_engineering["features_created"] = [
+                f"Final feature count: {feature_engineering.get('final_feature_count')}"
+            ]
+        if (
+            "features_created" not in feature_engineering
+            and "engineered_features" in feature_engineering
+        ):
+            feature_engineering["features_created"] = [
+                f"Engineered features count: {feature_engineering.get('engineered_features')}"
+            ]
+        if (
+            "features_created" not in feature_engineering
+            and feature_engineering.get("llm_actions_applied")
+        ):
+            feature_engineering["features_created"] = feature_engineering.get(
+                "llm_actions_applied"
+            )
+        if (
+            "features_dropped" not in feature_engineering
+            and isinstance(feature_engineering.get("dropped_columns"), dict)
+        ):
+            feature_engineering["features_dropped"] = feature_engineering.get(
+                "dropped_columns", {}
+            ).get("general_drop", [])
+        if (
+            "encoding_applied" not in feature_engineering
+            and feature_engineering.get("used_columns")
+        ):
+            feature_engineering["encoding_applied"] = feature_engineering.get(
+                "used_columns"
+            )
+        if (
+            "feature_importances" not in feature_engineering
+            and modeling.get("best_model_feature_importance")
+        ):
+            feature_engineering["feature_importances"] = [
+                {
+                    "feature": item.get("feature_name", item.get("feature")),
+                    "importance": item.get("importance"),
+                }
+                for item in self._coerce_list(
+                    modeling.get("best_model_feature_importance")
+                )
+                if isinstance(item, dict)
+            ]
+        if "key_insights" not in feature_engineering and feature_engineering.get(
+            "llm_actions_count"
+        ) is not None:
+            feature_engineering["key_insights"] = [
+                f"LLM feature actions applied: {feature_engineering.get('llm_actions_count')}"
+            ]
+
+        best_model = modeling.get("best_model")
+        if isinstance(best_model, str):
+            best_model_name = self._first_non_empty(
+                modeling.get("best_model_name"),
+                evaluation.get("best_model_name"),
+            )
+            if best_model_name not in (None, ""):
+                modeling["best_model"] = {"name": best_model_name}
+            else:
+                modeling["best_model"] = {"name": best_model}
+        elif best_model in (None, ""):
+            best_model_name = self._first_non_empty(
+                modeling.get("best_model_name"),
+                evaluation.get("best_model"),
+            )
+            modeling["best_model"] = (
+                {"name": best_model_name} if best_model_name not in (None, "") else {}
+            )
+        elif isinstance(best_model, dict) and "name" not in best_model:
+            best_model_name = self._first_non_empty(
+                modeling.get("best_model_name"),
+                evaluation.get("best_model_name"),
+            )
+            if best_model_name not in (None, ""):
+                modeling["best_model"]["name"] = best_model_name
+
+        if not modeling.get("models_compared") and modeling.get("leaderboard"):
+            modeling["models_compared"] = modeling.get("leaderboard")
+        if not modeling.get("selection_reason") and evaluation_selection:
+            modeling["selection_reason"] = (
+                f"Selected by {evaluation_selection.get('selection_metric')} with score "
+                f"{evaluation_selection.get('selection_metric_value')} at rank "
+                f"{evaluation_selection.get('selection_rank')}."
+            )
+
+        if "primary_metric" not in evaluation:
+            evaluation["primary_metric"] = self._first_non_empty(
+                modeling.get("primary_metric"),
+                planner_plan.get("primary_metric"),
+            )
+        if "primary_score" not in evaluation and evaluation_selection.get(
+            "selection_metric_value"
+        ) is not None:
+            evaluation["primary_score"] = evaluation_selection.get(
+                "selection_metric_value"
+            )
+        if not evaluation.get("metrics"):
+            evaluation["metrics"] = self._first_non_empty(
+                best_model_eval_metrics,
+                best_model_metrics,
+                {},
+            )
+        if not evaluation.get("confusion_matrix"):
+            evaluation["confusion_matrix"] = self._first_non_empty(
+                best_model_eval_diagnostics.get("confusion_matrix"),
+                diagnostics.get("confusion_matrix"),
+                {},
+            )
+        if not evaluation.get("key_insights") and evaluation.get("limitations") is not None:
+            evaluation["key_insights"] = evaluation.get("limitations")
+
+        if meta.get("models_evaluated") in (None, "") and modeling.get(
+            "models_trained"
+        ) not in (None, ""):
+            meta["models_evaluated"] = modeling.get("models_trained")
+        if meta.get("models_evaluated") in (None, "") and evaluation.get(
+            "benchmark_overview", {}
+        ).get("candidate_model_count") is not None:
+            meta["models_evaluated"] = evaluation.get("benchmark_overview", {}).get(
+                "candidate_model_count"
+            )
+
+        normalized["meta"] = meta
+        normalized["data_understanding"] = data_understanding
+        normalized["data_cleaning"] = data_cleaning
+        normalized["feature_engineering"] = feature_engineering
+        normalized["modeling"] = modeling
+        normalized["evaluation"] = evaluation
+        normalized["business_context"] = business_context
         return normalized
 
     def _load_json_file(self, json_file_path: Union[str, os.PathLike[str]]) -> Dict[str, Any]:
@@ -580,6 +1178,9 @@ class MultiAgentReportGenerator:
     def _build_project_context(self, json_data: Dict[str, Any]) -> str:
         meta = json_data.get("meta", {})
         business_context = json_data.get("business_context", {})
+        planner_review = json_data.get("planner_review", {})
+        planner_plan = json_data.get("planner_plan", {})
+        report_planner = json_data.get("report_planner", {})
 
         context_lines = [
             self._format_optional_context("Dataset name", meta.get("dataset_name")),
@@ -612,6 +1213,23 @@ class MultiAgentReportGenerator:
             self._format_optional_context(
                 "Project objective", business_context.get("project_objective")
             ),
+            self._format_optional_context("Planner source", report_planner.get("source")),
+            self._format_optional_context(
+                "Planner rationale", report_planner.get("rationale")
+            ),
+            self._format_optional_context(
+                "Planner required sections",
+                report_planner.get("required_sections"),
+            ),
+            self._format_optional_context(
+                "Planner review", planner_review.get("review_text")
+            ),
+            self._format_optional_context(
+                "Planner primary metric", planner_plan.get("primary_metric")
+            ),
+            self._format_optional_context(
+                "Planner reasoning", planner_plan.get("reasoning")
+            ),
         ]
         usable_lines = [line for line in context_lines if line]
         if not usable_lines:
@@ -621,6 +1239,28 @@ class MultiAgentReportGenerator:
             )
         return "\n".join(usable_lines)
 
+    def _build_planner_instruction_block(
+        self, json_data: Dict[str, Any], audience: str
+    ) -> str:
+        report_planner = json_data.get("report_planner", {})
+        required_sections = self._coerce_list(report_planner.get("required_sections"))
+        instruction_items = self._coerce_list(
+            report_planner.get(f"{audience}_instructions")
+        )
+
+        lines = []
+        if required_sections:
+            joined_sections = ", ".join(str(item) for item in required_sections)
+            lines.append(f"- Required sections: {joined_sections}")
+        lines.extend(
+            f"- {str(item).strip()}"
+            for item in instruction_items
+            if str(item).strip()
+        )
+        if not lines:
+            return "- No additional planner instructions were provided for this report."
+        return "\n".join(lines)
+
     def _build_prompt_payload(self, json_data: Dict[str, Any]) -> Dict[str, str]:
         report_language_name = self._describe_report_language(
             self._resolve_report_language(json_data)
@@ -628,6 +1268,12 @@ class MultiAgentReportGenerator:
         return {
             "json_data": json.dumps(json_data, ensure_ascii=False, indent=2),
             "project_context": self._build_project_context(json_data),
+            "technical_planner_instructions": self._build_planner_instruction_block(
+                json_data, "technical"
+            ),
+            "business_planner_instructions": self._build_planner_instruction_block(
+                json_data, "business"
+            ),
             "report_language_name": report_language_name,
         }
 
@@ -708,6 +1354,7 @@ class MultiAgentReportGenerator:
     def _build_confusion_matrix_table(
         self, confusion_matrix: Dict[str, Any], left_header: str, right_header: str
     ) -> str:
+        confusion_matrix = self._normalize_confusion_matrix(confusion_matrix)
         if not confusion_matrix:
             return f"| {left_header} | {right_header} |\n| --- | --- |\n| N/A | N/A |"
         rows = [f"| {left_header} | {right_header} |", "| --- | --- |"]
@@ -752,6 +1399,7 @@ class MultiAgentReportGenerator:
     ) -> list[str]:
         data_understanding = json_data.get("data_understanding", {})
         evaluation = json_data.get("evaluation", {})
+        planner_review = json_data.get("planner_review", {})
         recommendations = []
 
         imbalance_ratio = data_understanding.get("class_imbalance_ratio")
@@ -778,7 +1426,60 @@ class MultiAgentReportGenerator:
         recommendations.append(
             "Collect additional explanatory variables to improve model robustness and actionability."
         )
-        return recommendations
+        recommendations.extend(
+            str(item)
+            for item in self._coerce_list(planner_review.get("recommendations"))
+            if str(item).strip()
+        )
+        return self._deduplicate_items(recommendations)
+
+    @staticmethod
+    def _deduplicate_items(items: list[str]) -> list[str]:
+        seen = set()
+        deduplicated = []
+        for item in items:
+            normalized = str(item).strip()
+            if not normalized:
+                continue
+            key = normalized.casefold()
+            if key in seen:
+                continue
+            seen.add(key)
+            deduplicated.append(normalized)
+        return deduplicated
+
+    def _build_planner_highlights(self, json_data: Dict[str, Any]) -> list[str]:
+        planner_review = json_data.get("planner_review", {})
+        planner_plan = json_data.get("planner_plan", {})
+        report_planner = json_data.get("report_planner", {})
+
+        highlights = [
+            str(item)
+            for item in self._coerce_list(planner_review.get("key_findings"))
+            if str(item).strip()
+        ]
+
+        primary_metric = planner_plan.get("primary_metric")
+        if primary_metric:
+            highlights.append(f"Planner primary metric: {primary_metric}.")
+
+        reasoning = planner_plan.get("reasoning")
+        if reasoning:
+            highlights.append(f"Planner reasoning: {reasoning}")
+
+        rationale = report_planner.get("rationale")
+        if rationale:
+            highlights.append(f"Planner rationale: {rationale}")
+
+        required_sections = self._coerce_list(report_planner.get("required_sections"))
+        if required_sections:
+            highlights.append(
+                "Planner requested sections: "
+                + ", ".join(str(item) for item in required_sections)
+                + "."
+            )
+
+        return self._deduplicate_items(highlights)
 
     def _build_template_technical_report(
         self, json_data: Dict[str, Any], report_language_name: str
@@ -793,13 +1494,21 @@ class MultiAgentReportGenerator:
         dataset_name = meta.get("dataset_name", "Unknown dataset")
         target_variable = meta.get("target_variable", "unknown target")
         task_type = meta.get("task_type", "unknown task")
-        best_model = modeling.get("best_model", {})
+        best_model_raw = modeling.get("best_model", {})
+        best_model = (
+            best_model_raw
+            if isinstance(best_model_raw, dict)
+            else {"name": best_model_raw}
+            if best_model_raw not in (None, "")
+            else {}
+        )
         best_model_name = best_model.get("name", "N/A")
         primary_metric = evaluation.get("primary_metric", "primary metric")
         primary_score = evaluation.get("primary_score")
         top_features = self._top_feature_summaries(
             self._coerce_list(feature_engineering.get("feature_importances"))
         )
+        planner_highlights = self._build_planner_highlights(json_data)
         charts = self._build_chart_recommendations(task_type)
         recommendations = self._build_template_technical_recommendations(
             json_data, chinese=False
@@ -876,6 +1585,11 @@ class MultiAgentReportGenerator:
             section_titles[3],
             "",
             self._markdown_bullets(model_lines),
+            "",
+            self._markdown_bullets(
+                planner_highlights
+                or ["No planner-specific findings were provided."]
+            ),
             "",
             section_titles[4],
             "",
@@ -1081,6 +1795,7 @@ class MultiAgentReportGenerator:
         action_rows = self._build_business_action_rows(json_data, chinese=False)
         risk_notes = self._build_risk_notes(json_data, chinese=False)
         roadmap = self._build_implementation_roadmap(json_data, chinese=False)
+        planner_highlights = self._build_planner_highlights(json_data)
         technical_context_note = technical_report.strip() if technical_report else ""
         headers = [
             "Priority",
@@ -1111,6 +1826,7 @@ class MultiAgentReportGenerator:
             f"Decision threshold: {self._format_value(decision_threshold)}.",
             f"Preferred strategy: {self._format_value(business_context.get('preferred_strategy'))}.",
         ]
+        key_findings.extend(planner_highlights)
 
         action_table = self._build_action_table(action_rows, headers)
         report_sections = [
@@ -1140,22 +1856,57 @@ class MultiAgentReportGenerator:
         ]
         return "\n".join(report_sections).strip() + "\n"
 
+    @staticmethod
+    def _sanitize_report_markdown(report: str) -> str:
+        """Remove trailing assistant-style follow-up offers from report output."""
+        normalized = report.rstrip()
+        if not normalized:
+            return report
+
+        conversational_starters = (
+            "if you want,",
+            "if you'd like,",
+            "if you would like,",
+            "i can ",
+            "let me know if you want",
+            "let me know if you'd like",
+        )
+
+        paragraphs = normalized.split("\n\n")
+        while paragraphs:
+            last_paragraph = paragraphs[-1].strip()
+            if not last_paragraph:
+                paragraphs.pop()
+                continue
+            lowered = last_paragraph.casefold()
+            if any(lowered.startswith(prefix) for prefix in conversational_starters):
+                paragraphs.pop()
+                continue
+            break
+
+        cleaned = "\n\n".join(paragraphs).strip()
+        return (cleaned + "\n") if cleaned else ""
+
     def _generate_technical_report_content(self, json_data: Dict[str, Any]) -> str:
         payload = self._build_prompt_payload(json_data)
         report_language_name = payload["report_language_name"]
 
         if self.technical_chain is None:
-            return self._build_template_technical_report(json_data, report_language_name)
+            return self._sanitize_report_markdown(
+                self._build_template_technical_report(json_data, report_language_name)
+            )
 
         try:
-            return self.technical_chain.invoke(payload)
+            return self._sanitize_report_markdown(self.technical_chain.invoke(payload))
         except Exception as exc:
             if self.config.require_llm:
                 raise
             print(
                 f"Technical LLM generation failed: {exc}. Falling back to template mode."
             )
-            return self._build_template_technical_report(json_data, report_language_name)
+            return self._sanitize_report_markdown(
+                self._build_template_technical_report(json_data, report_language_name)
+            )
 
     def _generate_business_report_content(
         self,
@@ -1169,24 +1920,28 @@ class MultiAgentReportGenerator:
         )
 
         if self.business_chain is None:
-            return self._build_template_business_report(
-                json_data,
-                report_language_name,
-                technical_report=technical_report,
+            return self._sanitize_report_markdown(
+                self._build_template_business_report(
+                    json_data,
+                    report_language_name,
+                    technical_report=technical_report,
+                )
             )
 
         try:
-            return self.business_chain.invoke(payload)
+            return self._sanitize_report_markdown(self.business_chain.invoke(payload))
         except Exception as exc:
             if self.config.require_llm:
                 raise
             print(
                 f"Business LLM generation failed: {exc}. Falling back to template mode."
             )
-            return self._build_template_business_report(
-                json_data,
-                report_language_name,
-                technical_report=technical_report,
+            return self._sanitize_report_markdown(
+                self._build_template_business_report(
+                    json_data,
+                    report_language_name,
+                    technical_report=technical_report,
+                )
             )
 
     def _resolve_business_technical_context_report(
@@ -1214,67 +1969,19 @@ class MultiAgentReportGenerator:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         technical_path = self.output_dir / f"technical_report_{timestamp}.md"
         business_path = self.output_dir / f"business_report_{timestamp}.md"
-        combined_markdown_path = self.output_dir / "report.md"
-        report_json_path = self.output_dir / "report.json"
 
         with open(technical_path, "w", encoding="utf-8") as file:
             file.write(technical_report)
         with open(business_path, "w", encoding="utf-8") as file:
             file.write(business_report)
-        with open(combined_markdown_path, "w", encoding="utf-8") as file:
-            file.write(self._build_combined_report_markdown(technical_report, business_report))
-        with open(report_json_path, "w", encoding="utf-8") as file:
-            json.dump(
-                {
-                    "status": "success",
-                    "agent_name": self.AGENT_NAME,
-                    "generation_mode": self.generation_mode,
-                    "generated_at": datetime.now().isoformat(),
-                    "technical_report": technical_report,
-                    "business_report": business_report,
-                    "saved_paths": {
-                        "technical_report": str(technical_path),
-                        "business_report": str(business_path),
-                        "combined_markdown": str(combined_markdown_path),
-                        "report_json": str(report_json_path),
-                    },
-                },
-                file,
-                ensure_ascii=False,
-                indent=2,
-            )
 
         print(f"Saved technical report to: {technical_path}")
         print(f"Saved business report to: {business_path}")
-        print(f"Saved combined markdown report to: {combined_markdown_path}")
-        print(f"Saved report payload to: {report_json_path}")
         return {
             "technical_report": str(technical_path),
             "business_report": str(business_path),
-            "combined_markdown": str(combined_markdown_path),
-            "report_json": str(report_json_path),
+            "llm_backend": self.llm_backend,
         }
-
-    @staticmethod
-    def _build_combined_report_markdown(
-        technical_report: str, business_report: str
-    ) -> str:
-        return "\n".join(
-            [
-                "# AutoDS Report Package",
-                "",
-                "## Technical Report",
-                "",
-                technical_report.strip(),
-                "",
-                "---",
-                "",
-                "## Business Report",
-                "",
-                business_report.strip(),
-                "",
-            ]
-        )
 
     def run(
         self,
@@ -1341,6 +2048,10 @@ class MultiAgentReportGenerator:
                 "saved_paths": saved_paths,
                 "agent_name": self.AGENT_NAME,
                 "generation_mode": self.generation_mode,
+                "llm_backend": self.llm_backend,
+                "planner_input": asdict(self.planner_input_)
+                if self.planner_input_ is not None
+                else None,
                 "business_used_technical_context": include_technical_context,
             }
         except Exception as exc:
@@ -1351,6 +2062,10 @@ class MultiAgentReportGenerator:
                 "saved_paths": None,
                 "agent_name": self.AGENT_NAME,
                 "generation_mode": self.generation_mode,
+                "llm_backend": self.llm_backend,
+                "planner_input": asdict(self.planner_input_)
+                if self.planner_input_ is not None
+                else None,
                 "business_used_technical_context": False,
                 "error": str(exc),
             }
@@ -1377,6 +2092,10 @@ class MultiAgentReportGenerator:
                 "saved_paths": saved_paths,
                 "agent_name": self.AGENT_NAME,
                 "generation_mode": self.generation_mode,
+                "llm_backend": self.llm_backend,
+                "planner_input": asdict(self.planner_input_)
+                if self.planner_input_ is not None
+                else None,
             }
         except Exception as exc:
             return {
@@ -1385,6 +2104,10 @@ class MultiAgentReportGenerator:
                 "saved_paths": None,
                 "agent_name": self.AGENT_NAME,
                 "generation_mode": self.generation_mode,
+                "llm_backend": self.llm_backend,
+                "planner_input": asdict(self.planner_input_)
+                if self.planner_input_ is not None
+                else None,
                 "error": str(exc),
             }
 
@@ -1427,6 +2150,10 @@ class MultiAgentReportGenerator:
                 "saved_paths": saved_paths,
                 "agent_name": self.AGENT_NAME,
                 "generation_mode": self.generation_mode,
+                "llm_backend": self.llm_backend,
+                "planner_input": asdict(self.planner_input_)
+                if self.planner_input_ is not None
+                else None,
                 "business_used_technical_context": use_technical_context,
             }
         except Exception as exc:
@@ -1436,6 +2163,10 @@ class MultiAgentReportGenerator:
                 "saved_paths": None,
                 "agent_name": self.AGENT_NAME,
                 "generation_mode": self.generation_mode,
+                "llm_backend": self.llm_backend,
+                "planner_input": asdict(self.planner_input_)
+                if self.planner_input_ is not None
+                else None,
                 "business_used_technical_context": False,
                 "error": str(exc),
             }
@@ -1448,6 +2179,9 @@ Generate a technical report based on the project context and JSON data below.
 [Project context]
 {project_context}
 
+[Planner instructions for the technical report]
+{technical_planner_instructions}
+
 [JSON data]
 {json_data}
 
@@ -1456,10 +2190,12 @@ Generate a technical report based on the project context and JSON data below.
 0. Topic adaptation:
    - Infer the project theme, industry, and task strictly from the project context and JSON content.
    - Do not assume any specific domain, user group, or use case unless the JSON clearly says so.
+   - If `planner_review`, `planner_plan`, or `report_planner` exists, use them as steering context, but let concrete metrics and field values in the JSON take priority when there is any conflict.
    - For classification tasks, explain metrics such as accuracy, F1, recall, precision, class imbalance, and the confusion matrix.
    - For regression tasks, focus on MAE, RMSE, R2, error range, and business impact.
    - For other task types, prioritize the core metrics that actually appear in the JSON instead of forcing a fixed template.
    - Use the entity names from the JSON for the target, risk group, and business objects.
+   - Follow any required sections or report-specific instructions in the planner block when they do not conflict with the actual JSON evidence.
 
 1. Structure:
    - # Executive Summary
@@ -1474,6 +2210,10 @@ Generate a technical report based on the project context and JSON data below.
    - Use concrete numbers instead of vague descriptions
    - Explain technical terms clearly while staying professional
    - State both model strengths and limitations objectively
+   - Do not use stock sentences that could apply to any project; every key finding and recommendation must map back to the provided JSON.
+   - Do not ask the reader follow-up questions.
+   - Do not offer extra help, future optional work, or next-step services outside the report itself.
+   - Do not use conversational phrases such as `If you want`, `I can`, `let me know`, or `once you confirm`.
 
 3. Metric interpretation:
    - For classification, explain accuracy, F1 score, precision, recall, confusion matrix, and class imbalance effects
@@ -1503,6 +2243,7 @@ Generate a technical report based on the project context and JSON data below.
 Return plain Markdown only.
 Do not wrap the answer in a code block.
 Start directly with `# Executive Summary`.
+End the report immediately after the final required section.
 """
 
     def _get_business_translation_prompt(self) -> str:
@@ -1512,6 +2253,9 @@ Translate the technical analysis into practical business recommendations based o
 
 [Project context]
 {project_context}
+
+[Planner instructions for the business report]
+{business_planner_instructions}
 
 [Optional technical report context]
 {technical_report_context}
@@ -1526,8 +2270,10 @@ Translate the technical analysis into practical business recommendations based o
    - Do not assume any specific domain, user group, or workflow unless the JSON clearly says so.
    - The names of people, teams, departments, and processes must match the current project theme.
    - If the JSON provides `industry`, `use_case`, `target_audience`, or `stakeholders`, use them.
+   - If `planner_review`, `planner_plan`, or `report_planner` exists, use them as business-steering context, but prefer concrete metrics and explicit field values from the JSON over generic planner wording when they differ.
    - Treat the optional technical report context as supplemental input only, not as a required dependency.
    - If the optional technical report context is empty or unavailable, infer the business recommendations directly from the JSON and project context.
+   - Follow any required sections or business-specific instructions in the planner block when they do not conflict with the actual JSON evidence.
 
 1. Structure:
    - # Executive Summary
@@ -1543,6 +2289,10 @@ Translate the technical analysis into practical business recommendations based o
    - Use business language that matches the project theme
    - Each recommendation should include owner, timeline, expected result, and required resources
    - Use concrete numbers whenever possible
+   - Avoid canned recommendations; tie each action to the actual risks, metrics, and constraints in the JSON.
+   - Do not ask the reader follow-up questions.
+   - Do not offer extra help, future optional work, or next-step services outside the report itself.
+   - Do not use conversational phrases such as `If you want`, `I can`, `let me know`, or `once you confirm`.
 
 3. Business translation examples:
    - Technical metric -> explain what it means for business decisions
@@ -1576,6 +2326,7 @@ Translate the technical analysis into practical business recommendations based o
 Return plain Markdown only.
 Do not wrap the answer in a code block.
 Start directly with `# Executive Summary`.
+End the report immediately after the final required section.
 """
 
 
@@ -1641,6 +2392,12 @@ def main() -> None:
         default="both",
         help="Generation mode: both, technical, or business.",
     )
+    parser.add_argument(
+        "--planner-input",
+        type=str,
+        default=None,
+        help="Optional planner JSON that steers report strategy, sections, and business context.",
+    )
 
     args = parser.parse_args()
 
@@ -1654,7 +2411,15 @@ def main() -> None:
         force_template_mode=args.no_llm,
         business_include_technical_context=args.business_use_technical_report,
     )
-    generator = MultiAgentReportGenerator(config=config)
+    planner_input = (
+        load_report_planner_input(args.planner_input)
+        if args.planner_input
+        else None
+    )
+    generator = MultiAgentReportGenerator(
+        config=config,
+        planner_input=planner_input,
+    )
 
     if args.mode == "both":
         result = generator.run(
@@ -1689,7 +2454,9 @@ if __name__ == "__main__":
 ReportGenerator = MultiAgentReportGenerator
 
 __all__ = [
+    "ReportPlannerInput",
     "ReportGeneratorConfig",
     "ReportGenerator",
     "MultiAgentReportGenerator",
+    "load_report_planner_input",
 ]

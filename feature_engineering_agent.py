@@ -208,12 +208,8 @@ class FeatureEngineeringAgent:
     def _init_llm(self):
         if not self.config.use_llm_planner:
             return None
-        if ChatOpenAI is None:
-            return None
-        if not os.getenv("OPENAI_API_KEY"):
-            return None
-
-        return ChatOpenAI(
+        from utils import build_chat_llm
+        return build_chat_llm(
             model=self.config.llm_model,
             temperature=self.config.llm_temperature,
         )
@@ -276,6 +272,51 @@ class FeatureEngineeringAgent:
 
     def transform(self, df: pd.DataFrame) -> Dict[str, Any]:
         return self.run(df, fit=False)
+
+    def get_planner_payload(self, df: pd.DataFrame) -> Dict[str, Any]:
+        """
+        Create a planner-friendly payload describing the feature engineering
+        configuration, dataset profile, and optional LLM-driven feature plan.
+
+        This method is intended for use by a PlannerAgent or pipeline orchestrator.
+        """
+        self._validate_input(df)
+
+        work_df = df.copy()
+        y = work_df[self.config.target_column].copy()
+        X = work_df.drop(columns=[self.config.target_column])
+
+        self._profile_columns(X)
+        X = self._drop_useless_columns(X)
+        X = self._coerce_datetime_like_columns(X)
+        self._assign_column_roles(X)
+
+        if self.config.use_llm_planner:
+            llm_plan = self._generate_llm_plan(X, y)
+        else:
+            llm_plan = {
+                "planner_status": "disabled_by_config",
+                "actions": [],
+                "reason": "LLM planner disabled in FeatureEngineeringConfig.",
+            }
+
+        self.llm_plan_ = llm_plan
+
+        return {
+            "feature_config": asdict(self.config),
+            "dataset_profile": {
+                "row_count": int(len(X)),
+                "column_profiles": [asdict(p) for p in self.column_profiles_],
+                "current_roles": {
+                    "numeric": self.numeric_columns_,
+                    "categorical": self.categorical_columns_,
+                    "datetime": self.datetime_columns_,
+                    "text": self.text_columns_,
+                    "bool_as_numeric": self.bool_columns_,
+                },
+            },
+            "llm_plan": llm_plan,
+        }
 
     def _validate_input(self, df: pd.DataFrame) -> None:
         if not isinstance(df, pd.DataFrame):

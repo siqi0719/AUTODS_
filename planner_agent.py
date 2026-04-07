@@ -9,8 +9,8 @@ Responsibilities:
   3. review_modelling()           -- Stage 5→6: natural-language review of
                                      model results for the final report
 
-LLM backend priority:
-  Anthropic Claude (ANTHROPIC_API_KEY)  →  OpenAI (OPENAI_API_KEY)  →  rule-based fallback
+LLM backend:
+  OpenAI (OPENAI_API_KEY)  →  rule-based fallback
 """
 
 from __future__ import annotations
@@ -31,7 +31,6 @@ import pandas as pd
 
 @dataclass
 class PlannerConfig:
-    llm_model_anthropic: str = "claude-sonnet-4-6"
     llm_model_openai: str = "gpt-4o-mini"
     temperature: float = 0.0
     output_dir: str = "./autods_pipeline_output/00_planning"
@@ -67,43 +66,16 @@ class PlannerAgent:
             pass
 
     def _init_llm(self):
-        # Try Anthropic first
-        if self._try_anthropic():
-            return
-        # Fallback to OpenAI
-        if self._try_openai():
-            return
-        print("[PlannerAgent] No LLM available — rule-based fallback mode.")
-
-    def _try_anthropic(self) -> bool:
-        try:
-            import anthropic
-            api_key = os.getenv("ANTHROPIC_API_KEY", "")
-            if not api_key or api_key.startswith("sk-ant-placeholder"):
-                return False
-            self._client = anthropic.Anthropic(api_key=api_key)
-            self._provider = "anthropic"
-            print(f"[PlannerAgent] Using Anthropic Claude ({self.config.llm_model_anthropic})")
-            return True
-        except ImportError:
-            return False
-
-    def _try_openai(self) -> bool:
-        try:
-            from langchain_openai import ChatOpenAI
-            api_key = os.getenv("OPENAI_API_KEY", "")
-            if not api_key or "placeholder" in api_key.lower():
-                return False
-            self._client = ChatOpenAI(
-                model=self.config.llm_model_openai,
-                temperature=self.config.temperature,
-                api_key=api_key,
-            )
+        from utils import build_chat_llm
+        client = build_chat_llm(
+            model=self.config.llm_model_openai,
+            temperature=self.config.temperature,
+        )
+        if client is not None:
+            self._client = client
             self._provider = "openai"
-            print(f"[PlannerAgent] Using OpenAI ({self.config.llm_model_openai})")
-            return True
-        except ImportError:
-            return False
+        else:
+            print("[PlannerAgent] No LLM available — rule-based fallback mode.")
 
     # ------------------------------------------------------------------
     # Unified LLM call
@@ -113,22 +85,11 @@ class PlannerAgent:
         if self._client is None:
             return ""
         try:
-            if self._provider == "anthropic":
-                resp = self._client.messages.create(
-                    model=self.config.llm_model_anthropic,
-                    max_tokens=2048,
-                    system=system,
-                    messages=[{"role": "user", "content": user}],
-                )
-                return resp.content[0].text
-
-            if self._provider == "openai":
-                from langchain_core.messages import HumanMessage, SystemMessage
-                resp = self._client.invoke(
-                    [SystemMessage(content=system), HumanMessage(content=user)]
-                )
-                return resp.content
-
+            from langchain_core.messages import HumanMessage, SystemMessage
+            resp = self._client.invoke(
+                [SystemMessage(content=system), HumanMessage(content=user)]
+            )
+            return resp.content
         except Exception as exc:
             print(f"[PlannerAgent] LLM call failed: {exc}")
         return ""
@@ -612,11 +573,10 @@ Schema:
   "reasoning": "<1-2 sentences explaining key choices>"
 }
 
-Available models:
-  Classification : LogisticRegression, DecisionTree, RandomForest,
-                   GradientBoosting, LightGBM, XGBoost, SVC, KNeighbors
-  Regression     : LinearRegression, Ridge, Lasso, DecisionTree,
-                   RandomForest, GradientBoosting, LightGBM, XGBoost, SVR
+Available models (use these exact names):
+  Classification : logistic_regression, random_forest, svm_rbf, xgboost, lightgbm
+  Regression     : ridge_regression, random_forest_regressor, svr_rbf,
+                   xgboost_regressor, lightgbm_regressor
 
 Rules:
 - Pick the target column from the schema; if unclear, pick the most likely label column.
@@ -657,20 +617,29 @@ Rules:
 
     @staticmethod
     def _rule_based_plan(constraints: Optional[Dict]) -> Dict[str, Any]:
+        c = constraints or {}
+        problem_type = c.get("problem_type") or "classification"
+        target_column = c.get("target_column") or None
+
+        if problem_type == "regression":
+            primary_metric = "rmse"
+            candidate_models = ["ridge_regression", "random_forest_regressor", "xgboost_regressor"]
+        else:
+            primary_metric = "roc_auc"
+            candidate_models = ["logistic_regression", "random_forest", "xgboost"]
+
         return {
-            "target_column": None,
-            "problem_type": "classification",
-            "primary_metric": "roc_auc",
+            "target_column": target_column,
+            "problem_type": problem_type,
+            "primary_metric": primary_metric,
             "feature_config": {
                 "task_description": "AutoDS automated feature engineering",
-                "use_llm_planner": False,
+                "use_llm_planner": True,
             },
             "modelling_config": {
-                "candidate_model_names": [
-                    "LogisticRegression", "RandomForest", "GradientBoosting"
-                ],
+                "candidate_model_names": candidate_models,
                 "cv_folds": 5,
-                "primary_metric": "roc_auc",
+                "primary_metric": primary_metric,
             },
             "reasoning": "Rule-based fallback (no LLM available).",
         }

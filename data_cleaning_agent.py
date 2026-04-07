@@ -155,26 +155,14 @@ class DataCleaningAgent:
     def _init_llm(self):
         if not self.config.use_llm_column_advisor:
             return None
-        try:
-            from langchain_openai import ChatOpenAI
-            try:
-                from dotenv import load_dotenv
-                load_dotenv()
-            except ImportError:
-                pass
-            api_key = os.getenv("OPENAI_API_KEY", "")
-            if not api_key or "placeholder" in api_key.lower():
-                print(f"[{self.name}] OPENAI_API_KEY not found — LLM disabled.")
-                return None
-            llm = ChatOpenAI(
-                model=self.config.llm_model,
-                temperature=self.config.llm_temperature,
-            )
-            print(f"[{self.name}] LLM enabled: {self.config.llm_model}")
-            return llm
-        except ImportError:
-            print(f"[{self.name}] langchain_openai not installed — LLM disabled.")
-            return None
+        from utils import build_chat_llm
+        llm = build_chat_llm(
+            model=self.config.llm_model,
+            temperature=self.config.llm_temperature,
+        )
+        if llm is None:
+            print(f"[{self.name}] No LLM available — column advisor disabled.")
+        return llm
 
     # ================================================================== #
     # Main entry point  (P1, P2)

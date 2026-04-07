@@ -5,8 +5,81 @@ from __future__ import annotations
 import os
 import sys
 from pathlib import Path
+from typing import Optional
 
 import numpy as np
+
+# ---------------------------------------------------------------------------
+# LLM factory — shared by all agents
+# ---------------------------------------------------------------------------
+
+_QWEN_BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+_DEFAULT_QWEN_MODEL = "qwen-plus"
+_DEFAULT_OPENAI_MODEL = "gpt-4o-mini"
+
+
+def build_chat_llm(
+    model: Optional[str] = None,
+    temperature: float = 0.0,
+):
+    """Return the best available ChatOpenAI-compatible LLM client.
+
+    Priority:
+      1. Qwen (DashScope) — if DASHSCOPE_API_KEY is set
+      2. OpenAI            — if OPENAI_API_KEY is set
+      3. None              — rule-based fallback
+
+    The caller can pass a specific ``model`` name; when omitted the function
+    uses QWEN_MODEL / OPENAI_MODEL env vars, falling back to sensible defaults.
+    """
+    try:
+        from langchain_openai import ChatOpenAI
+    except ImportError:
+        return None
+
+    # ── 1. Qwen (DashScope) ──────────────────────────────────────────────────
+    dashscope_key = os.getenv("DASHSCOPE_API_KEY", "")
+    if dashscope_key and "placeholder" not in dashscope_key.lower():
+        # If the caller passed an OpenAI-specific model name (gpt-*, o1-*, o3-*),
+        # replace it with the Qwen model — those names don't exist on DashScope.
+        _is_openai_name = model and (
+            model.startswith("gpt-") or model.startswith("o1") or model.startswith("o3")
+        )
+        qwen_model = (
+            os.getenv("QWEN_MODEL", _DEFAULT_QWEN_MODEL)
+            if (model is None or _is_openai_name)
+            else model
+        )
+        try:
+            llm = ChatOpenAI(
+                model=qwen_model,
+                temperature=temperature,
+                api_key=dashscope_key,
+                base_url=_QWEN_BASE_URL,
+            )
+            print(f"[LLM] Using Qwen ({qwen_model})")
+            return llm
+        except Exception as exc:
+            print(f"[LLM] Qwen init failed: {exc}")
+
+    # ── 2. OpenAI ────────────────────────────────────────────────────────────
+    openai_key = os.getenv("OPENAI_API_KEY", "")
+    if openai_key and "placeholder" not in openai_key.lower():
+        openai_model = model or os.getenv("OPENAI_MODEL", _DEFAULT_OPENAI_MODEL)
+        base_url = os.getenv("OPENAI_BASE_URL") or None
+        try:
+            llm = ChatOpenAI(
+                model=openai_model,
+                temperature=temperature,
+                api_key=openai_key,
+                base_url=base_url,
+            )
+            print(f"[LLM] Using OpenAI ({openai_model})")
+            return llm
+        except Exception as exc:
+            print(f"[LLM] OpenAI init failed: {exc}")
+
+    return None
 
 
 def load_project_env(anchor_file: str | Path) -> None:
