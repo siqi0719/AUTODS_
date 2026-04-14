@@ -50,7 +50,7 @@ class DataCleaningConfig:
     # ── Thresholds (P3) ───────────────────────────────────────────────────────
     special_format_match_threshold: float = 0.80   # line 131 original
     numeric_conversion_threshold:   float = 0.80   # line 152 original
-    iqr_multiplier:                 float = 1.50   # line 230-231 original
+    iqr_multiplier:                 float = 3.00   # wider bounds — 1.5 removes too many rows across many columns
 
     # ── F2: ID-column detection ───────────────────────────────────────────────
     id_unique_ratio_threshold: float = 0.95
@@ -59,7 +59,9 @@ class DataCleaningConfig:
     missing_drop_threshold: float = 0.60
 
     # ── F7: Anomaly handling strategy ─────────────────────────────────────────
-    anomaly_strategy: str = "remove"   # "remove" | "clip"
+    anomaly_strategy: str = "clip"     # "remove" | "clip" — clip is safer for wide datasets
+    # Safety: if "remove" would delete more than this fraction, fall back to clip
+    max_anomaly_remove_ratio: float = 0.30
 
     # ── F8: Target-column protection ──────────────────────────────────────────
     target_column: Optional[str] = None
@@ -675,8 +677,15 @@ class DataCleaningAgent:
                 df[col] = df[col].clip(lower=lo, upper=hi)
                 print(f"  clip : {col}  {n} value(s) → [{lo:.4g}, {hi:.4g}]")
             else:
-                df = df[~mask]
-                print(f"  drop : {col}  {n} row(s)  bounds=[{lo:.4g}, {hi:.4g}]")
+                # Safety check: if removing would exceed max_anomaly_remove_ratio,
+                # fall back to clipping to avoid catastrophic data loss.
+                remove_ratio = n / len(df)
+                if remove_ratio > self.config.max_anomaly_remove_ratio:
+                    df[col] = df[col].clip(lower=lo, upper=hi)
+                    print(f"  clip : {col}  {n} row(s) would exceed {self.config.max_anomaly_remove_ratio:.0%} limit → clipped instead")
+                else:
+                    df = df[~mask]
+                    print(f"  drop : {col}  {n} row(s)  bounds=[{lo:.4g}, {hi:.4g}]")
 
         removed = rows_before - len(df)
         if removed:
