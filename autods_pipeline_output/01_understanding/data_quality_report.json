@@ -1,98 +1,566 @@
 {
   "missing_values": {
     "missing_count_by_column": {
-      "1": 0,
-      "2": 0,
-      "3": 0,
-      "4": 0,
-      "5": 0,
-      "6": 0,
-      "7": 0,
-      "8": 0,
-      "9": 0,
-      "10": 0,
-      "11": 0,
-      "12": 0,
-      "13": 0,
-      "14": 0,
-      "15": 0
+      "team": 0,
+      "conf": 0,
+      "GP": 0,
+      "Min_per": 0,
+      "Ortg": 0,
+      "usg": 0,
+      "eFG": 0,
+      "TS_per": 0,
+      "ORB_per": 0,
+      "DRB_per": 0,
+      "AST_per": 0,
+      "TO_per": 0,
+      "FTM": 0,
+      "FTA": 0,
+      "FT_per": 0,
+      "twoPM": 0,
+      "twoPA": 0,
+      "twoP_per": 0,
+      "TPM": 0,
+      "TPA": 0,
+      "TP_per": 0,
+      "blk_per": 0,
+      "stl_per": 0,
+      "ftr": 0,
+      "yr": 0,
+      "ht": 8,
+      "porpag": 0,
+      "adjoe": 0,
+      "pfr": 0,
+      "year": 0,
+      "type": 0,
+      "Rec_Rank": 9885,
+      "ast_tov": 1535,
+      "rimmade": 2075,
+      "rimmade_rimmiss": 2075,
+      "midmade": 2075,
+      "midmade_midmiss": 2075,
+      "rim_ratio": 3203,
+      "mid_ratio": 3191,
+      "dunksmade": 2075,
+      "dunksmiss_dunksmade": 2075,
+      "dunks_ratio": 9388,
+      "drtg": 5,
+      "adrtg": 5,
+      "dporpag": 5,
+      "stops": 5,
+      "bpm": 5,
+      "obpm": 5,
+      "dbpm": 5,
+      "gbpm": 5,
+      "mp": 1,
+      "ogbpm": 5,
+      "dgbpm": 5,
+      "oreb": 1,
+      "dreb": 1,
+      "treb": 1,
+      "ast": 1,
+      "stl": 1,
+      "blk": 1,
+      "pts": 1,
+      "player_id": 0,
+      "drafted": 0
     },
     "missing_ratio_by_column": {
-      "1": 0.0,
-      "2": 0.0,
-      "3": 0.0,
-      "4": 0.0,
-      "5": 0.0,
-      "6": 0.0,
-      "7": 0.0,
-      "8": 0.0,
-      "9": 0.0,
-      "10": 0.0,
-      "11": 0.0,
-      "12": 0.0,
-      "13": 0.0,
-      "14": 0.0,
-      "15": 0.0
+      "team": 0.0,
+      "conf": 0.0,
+      "GP": 0.0,
+      "Min_per": 0.0,
+      "Ortg": 0.0,
+      "usg": 0.0,
+      "eFG": 0.0,
+      "TS_per": 0.0,
+      "ORB_per": 0.0,
+      "DRB_per": 0.0,
+      "AST_per": 0.0,
+      "TO_per": 0.0,
+      "FTM": 0.0,
+      "FTA": 0.0,
+      "FT_per": 0.0,
+      "twoPM": 0.0,
+      "twoPA": 0.0,
+      "twoP_per": 0.0,
+      "TPM": 0.0,
+      "TPA": 0.0,
+      "TP_per": 0.0,
+      "blk_per": 0.0,
+      "stl_per": 0.0,
+      "ftr": 0.0,
+      "yr": 0.0,
+      "ht": 0.000541,
+      "porpag": 0.0,
+      "adjoe": 0.0,
+      "pfr": 0.0,
+      "year": 0.0,
+      "type": 0.0,
+      "Rec_Rank": 0.669081,
+      "ast_tov": 0.103899,
+      "rimmade": 0.140449,
+      "rimmade_rimmiss": 0.140449,
+      "midmade": 0.140449,
+      "midmade_midmiss": 0.140449,
+      "rim_ratio": 0.2168,
+      "mid_ratio": 0.215988,
+      "dunksmade": 0.140449,
+      "dunksmiss_dunksmade": 0.140449,
+      "dunks_ratio": 0.635441,
+      "drtg": 0.000338,
+      "adrtg": 0.000338,
+      "dporpag": 0.000338,
+      "stops": 0.000338,
+      "bpm": 0.000338,
+      "obpm": 0.000338,
+      "dbpm": 0.000338,
+      "gbpm": 0.000338,
+      "mp": 6.8e-05,
+      "ogbpm": 0.000338,
+      "dgbpm": 0.000338,
+      "oreb": 6.8e-05,
+      "dreb": 6.8e-05,
+      "treb": 6.8e-05,
+      "ast": 6.8e-05,
+      "stl": 6.8e-05,
+      "blk": 6.8e-05,
+      "pts": 6.8e-05,
+      "player_id": 0.0,
+      "drafted": 0.0
     }
   },
   "duplicate_rows": {
-    "count": 24,
-    "ratio": 0.0007370780995669666
+    "count": 2462,
+    "ratio": 0.1666441045079193
   },
-  "constant_columns": [],
+  "constant_columns": [
+    "yr",
+    "type"
+  ],
   "all_missing_columns": [],
-  "high_missing_columns": [],
-  "suspected_identifier_columns": [],
+  "high_missing_columns": [
+    "Rec_Rank",
+    "dunks_ratio"
+  ],
+  "suspected_identifier_columns": [
+    "player_id"
+  ],
   "high_cardinality_columns": [
-    "14"
+    "team",
+    "conf",
+    "ht",
+    "player_id"
   ],
   "numeric_outlier_report": {
-    "1": {
+    "GP": {
       "status": "completed",
-      "lower_bound": -2.0,
-      "upper_bound": 78.0,
-      "outlier_count": 143,
-      "outlier_ratio": 0.004391757009919842
-    },
-    "3": {
-      "status": "completed",
-      "lower_bound": -61009.0,
-      "upper_bound": 415887.0,
-      "outlier_count": 992,
-      "outlier_ratio": 0.030465894782101287
-    },
-    "5": {
-      "status": "completed",
-      "lower_bound": 4.5,
-      "upper_bound": 16.5,
-      "outlier_count": 1198,
-      "outlier_ratio": 0.036792481803384416
-    },
-    "11": {
-      "status": "skipped_zero_iqr",
+      "lower_bound": -15.0,
+      "upper_bound": 57.0,
       "outlier_count": 0,
       "outlier_ratio": 0.0
     },
-    "12": {
-      "status": "skipped_zero_iqr",
+    "Min_per": {
+      "status": "completed",
+      "lower_bound": -53.849999999999994,
+      "upper_bound": 100.94999999999999,
       "outlier_count": 0,
       "outlier_ratio": 0.0
     },
-    "13": {
+    "Ortg": {
       "status": "completed",
-      "lower_bound": 32.5,
-      "upper_bound": 52.5,
-      "outlier_count": 9008,
-      "outlier_ratio": 0.27664998003746816
+      "lower_bound": 35.099999999999994,
+      "upper_bound": 143.1,
+      "outlier_count": 1577,
+      "outlier_ratio": 0.10674157303370786
+    },
+    "usg": {
+      "status": "completed",
+      "lower_bound": 3.8499999999999996,
+      "upper_bound": 30.650000000000002,
+      "outlier_count": 820,
+      "outlier_ratio": 0.05550291051847841
+    },
+    "eFG": {
+      "status": "completed",
+      "lower_bound": 9.899999999999995,
+      "upper_bound": 76.3,
+      "outlier_count": 2043,
+      "outlier_ratio": 0.13828347096250168
+    },
+    "TS_per": {
+      "status": "completed",
+      "lower_bound": 15.914999999999996,
+      "upper_bound": 76.995,
+      "outlier_count": 1809,
+      "outlier_ratio": 0.12244483552186274
+    },
+    "ORB_per": {
+      "status": "completed",
+      "lower_bound": -8.000000000000002,
+      "upper_bound": 17.6,
+      "outlier_count": 335,
+      "outlier_ratio": 0.02267496954108569
+    },
+    "DRB_per": {
+      "status": "completed",
+      "lower_bound": -3.8999999999999986,
+      "upper_bound": 26.5,
+      "outlier_count": 451,
+      "outlier_ratio": 0.030526600785163123
+    },
+    "AST_per": {
+      "status": "completed",
+      "lower_bound": -12.55,
+      "upper_bound": 29.45,
+      "outlier_count": 425,
+      "outlier_ratio": 0.028766752402869907
+    },
+    "TO_per": {
+      "status": "completed",
+      "lower_bound": -3.099999999999996,
+      "upper_bound": 44.89999999999999,
+      "outlier_count": 671,
+      "outlier_ratio": 0.04541762555841343
+    },
+    "FTM": {
+      "status": "completed",
+      "lower_bound": -37.0,
+      "upper_bound": 67.0,
+      "outlier_count": 986,
+      "outlier_ratio": 0.06673886557465818
+    },
+    "FTA": {
+      "status": "completed",
+      "lower_bound": -57.875,
+      "upper_bound": 105.125,
+      "outlier_count": 833,
+      "outlier_ratio": 0.05638283470962502
+    },
+    "FT_per": {
+      "status": "completed",
+      "lower_bound": -0.09049999999999991,
+      "upper_bound": 1.2174999999999998,
+      "outlier_count": 0,
+      "outlier_ratio": 0.0
+    },
+    "twoPM": {
+      "status": "completed",
+      "lower_bound": -50.5,
+      "upper_bound": 89.5,
+      "outlier_count": 788,
+      "outlier_ratio": 0.05333694327873291
+    },
+    "twoPA": {
+      "status": "completed",
+      "lower_bound": -106.5,
+      "upper_bound": 193.5,
+      "outlier_count": 677,
+      "outlier_ratio": 0.04582374441586571
+    },
+    "twoP_per": {
+      "status": "completed",
+      "lower_bound": 0.050500000000000045,
+      "upper_bound": 0.7825,
+      "outlier_count": 2574,
+      "outlier_ratio": 0.17422498984702856
+    },
+    "TPM": {
+      "status": "completed",
+      "lower_bound": -19.5,
+      "upper_bound": 32.5,
+      "outlier_count": 1390,
+      "outlier_ratio": 0.09408420197644511
+    },
+    "TPA": {
+      "status": "completed",
+      "lower_bound": -60.5,
+      "upper_bound": 103.5,
+      "outlier_count": 1157,
+      "outlier_ratio": 0.0783132530120482
+    },
+    "TP_per": {
+      "status": "completed",
+      "lower_bound": -0.49950000000000006,
+      "upper_bound": 0.8325,
+      "outlier_count": 234,
+      "outlier_ratio": 0.01583863544063896
+    },
+    "blk_per": {
+      "status": "completed",
+      "lower_bound": -3.5999999999999996,
+      "upper_bound": 6.0,
+      "outlier_count": 1103,
+      "outlier_ratio": 0.07465818329497767
+    },
+    "stl_per": {
+      "status": "completed",
+      "lower_bound": -1.8000000000000003,
+      "upper_bound": 4.6000000000000005,
+      "outlier_count": 440,
+      "outlier_ratio": 0.02978204954650061
+    },
+    "ftr": {
+      "status": "completed",
+      "lower_bound": -35.5,
+      "upper_bound": 101.30000000000001,
+      "outlier_count": 547,
+      "outlier_ratio": 0.03702450250439962
+    },
+    "porpag": {
+      "status": "completed",
+      "lower_bound": -1.723066125,
+      "upper_bound": 2.046172875,
+      "outlier_count": 915,
+      "outlier_ratio": 0.061933125761472856
+    },
+    "adjoe": {
+      "status": "completed",
+      "lower_bound": 26.73087500000001,
+      "upper_bound": 144.649875,
+      "outlier_count": 1438,
+      "outlier_ratio": 0.09733315283606335
+    },
+    "pfr": {
+      "status": "completed",
+      "lower_bound": -1.3000000000000003,
+      "upper_bound": 9.9,
+      "outlier_count": 593,
+      "outlier_ratio": 0.04013808041153378
+    },
+    "year": {
+      "status": "completed",
+      "lower_bound": 2003.5,
+      "upper_bound": 2023.5,
+      "outlier_count": 0,
+      "outlier_ratio": 0.0
+    },
+    "Rec_Rank": {
+      "status": "completed",
+      "lower_bound": -41.2,
+      "upper_bound": 150.8,
+      "outlier_count": 0,
+      "outlier_ratio": 0.0
+    },
+    "ast_tov": {
+      "status": "completed",
+      "lower_bound": -0.7925023900000001,
+      "upper_bound": 2.29070677,
+      "outlier_count": 380,
+      "outlier_ratio": 0.028703074250321023
+    },
+    "rimmade": {
+      "status": "completed",
+      "lower_bound": -32.5,
+      "upper_bound": 59.5,
+      "outlier_count": 764,
+      "outlier_ratio": 0.060162217497440745
+    },
+    "rimmade_rimmiss": {
+      "status": "completed",
+      "lower_bound": -56.0,
+      "upper_bound": 104.0,
+      "outlier_count": 649,
+      "outlier_ratio": 0.051106386329632256
+    },
+    "midmade": {
+      "status": "completed",
+      "lower_bound": -15.5,
+      "upper_bound": 28.5,
+      "outlier_count": 942,
+      "outlier_ratio": 0.07417906921804866
+    },
+    "midmade_midmiss": {
+      "status": "completed",
+      "lower_bound": -49.5,
+      "upper_bound": 90.5,
+      "outlier_count": 718,
+      "outlier_ratio": 0.05653988503031735
+    },
+    "rim_ratio": {
+      "status": "completed",
+      "lower_bound": 0.1362000000000001,
+      "upper_bound": 0.9849999999999999,
+      "outlier_count": 1412,
+      "outlier_ratio": 0.12202921095843056
+    },
+    "mid_ratio": {
+      "status": "completed",
+      "lower_bound": -0.07929999999999998,
+      "upper_bound": 0.6791,
+      "outlier_count": 349,
+      "outlier_ratio": 0.030130363463696797
+    },
+    "dunksmade": {
+      "status": "completed",
+      "lower_bound": -3.0,
+      "upper_bound": 5.0,
+      "outlier_count": 1628,
+      "outlier_ratio": 0.12819907079297582
+    },
+    "dunksmiss_dunksmade": {
+      "status": "completed",
+      "lower_bound": -3.0,
+      "upper_bound": 5.0,
+      "outlier_count": 1838,
+      "outlier_ratio": 0.14473580596897392
+    },
+    "dunks_ratio": {
+      "status": "completed",
+      "lower_bound": 0.5455000000000001,
+      "upper_bound": 1.2727,
+      "outlier_count": 589,
+      "outlier_ratio": 0.10935759376160416
+    },
+    "drtg": {
+      "status": "completed",
+      "lower_bound": 85.31075000000001,
+      "upper_bound": 123.47914999999998,
+      "outlier_count": 277,
+      "outlier_ratio": 0.018755501388042523
+    },
+    "adrtg": {
+      "status": "completed",
+      "lower_bound": 81.19075000000001,
+      "upper_bound": 127.46635,
+      "outlier_count": 233,
+      "outlier_ratio": 0.015776288171169342
+    },
+    "dporpag": {
+      "status": "completed",
+      "lower_bound": -1.3583500000000002,
+      "upper_bound": 3.1550580000000004,
+      "outlier_count": 361,
+      "outlier_ratio": 0.02444309025661859
+    },
+    "stops": {
+      "status": "completed",
+      "lower_bound": -114.65905000000001,
+      "upper_bound": 213.98999,
+      "outlier_count": 105,
+      "outlier_ratio": 0.007109486085720089
+    },
+    "bpm": {
+      "status": "completed",
+      "lower_bound": -17.5476575,
+      "upper_bound": 10.3213225,
+      "outlier_count": 813,
+      "outlier_ratio": 0.055047735120861266
+    },
+    "obpm": {
+      "status": "completed",
+      "lower_bound": -12.892677499999998,
+      "upper_bound": 7.478702499999999,
+      "outlier_count": 828,
+      "outlier_ratio": 0.056063375990249846
+    },
+    "dbpm": {
+      "status": "completed",
+      "lower_bound": -8.020845,
+      "upper_bound": 6.028955,
+      "outlier_count": 726,
+      "outlier_ratio": 0.04915701807840747
+    },
+    "gbpm": {
+      "status": "completed",
+      "lower_bound": -17.5155155,
+      "upper_bound": 10.3288725,
+      "outlier_count": 937,
+      "outlier_ratio": 0.06344369964114023
+    },
+    "mp": {
+      "status": "completed",
+      "lower_bound": -16.142749999999996,
+      "upper_bound": 39.28565,
+      "outlier_count": 2,
+      "outlier_ratio": 0.00013538211602247342
+    },
+    "ogbpm": {
+      "status": "completed",
+      "lower_bound": -13.877728000000001,
+      "upper_bound": 7.82808,
+      "outlier_count": 884,
+      "outlier_ratio": 0.05985510190263389
+    },
+    "dgbpm": {
+      "status": "completed",
+      "lower_bound": -6.664289500000001,
+      "upper_bound": 5.4041625,
+      "outlier_count": 792,
+      "outlier_ratio": 0.05362583790371724
+    },
+    "oreb": {
+      "status": "completed",
+      "lower_bound": -0.7998000000000001,
+      "upper_bound": 1.7034000000000002,
+      "outlier_count": 809,
+      "outlier_ratio": 0.0547620659310905
+    },
+    "dreb": {
+      "status": "completed",
+      "lower_bound": -1.6699000000000002,
+      "upper_bound": 3.9261,
+      "outlier_count": 449,
+      "outlier_ratio": 0.030393285047045287
+    },
+    "treb": {
+      "status": "completed",
+      "lower_bound": -2.2650499999999996,
+      "upper_bound": 5.441749999999999,
+      "outlier_count": 574,
+      "outlier_ratio": 0.03885466729844987
+    },
+    "ast": {
+      "status": "completed",
+      "lower_bound": -1.1446,
+      "upper_bound": 2.241,
+      "outlier_count": 1039,
+      "outlier_ratio": 0.07033100927367494
+    },
+    "stl": {
+      "status": "completed",
+      "lower_bound": -0.61,
+      "upper_bound": 1.2388,
+      "outlier_count": 494,
+      "outlier_ratio": 0.03343938265755094
+    },
+    "blk": {
+      "status": "completed",
+      "lower_bound": -0.375,
+      "upper_bound": 0.625,
+      "outlier_count": 1221,
+      "outlier_ratio": 0.08265078183172003
+    },
+    "pts": {
+      "status": "completed",
+      "lower_bound": -5.5454,
+      "upper_bound": 11.908999999999999,
+      "outlier_count": 598,
+      "outlier_ratio": 0.04047925269071956
+    },
+    "drafted": {
+      "status": "skipped_zero_iqr",
+      "outlier_count": 0,
+      "outlier_ratio": 0.0
     }
   },
   "recommended_actions": {
-    "drop_or_review_constant_columns": [],
+    "drop_or_review_constant_columns": [
+      "yr",
+      "type"
+    ],
     "drop_or_review_all_missing_columns": [],
-    "review_high_missing_columns": [],
-    "review_identifier_columns_for_leakage": [],
+    "review_high_missing_columns": [
+      "Rec_Rank",
+      "dunks_ratio"
+    ],
+    "review_identifier_columns_for_leakage": [
+      "player_id"
+    ],
     "review_high_cardinality_columns_for_encoding": [
-      "14"
+      "team",
+      "conf",
+      "ht",
+      "player_id"
     ],
     "review_possible_target_leakage_columns": []
   }

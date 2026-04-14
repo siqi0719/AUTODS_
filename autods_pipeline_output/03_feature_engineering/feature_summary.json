@@ -1,37 +1,82 @@
 {
-  "target_column": "15",
+  "target_column": "drafted",
   "problem_type": "classification",
   "task_description": "AutoDS automated feature engineering",
-  "llm_plan_status": "not_used",
+  "llm_plan_status": "disabled_or_unavailable",
   "llm_actions_count": 0,
   "llm_actions_applied": [],
   "dropped_columns": {
-    "general_drop": [],
+    "general_drop": [
+      "porpag",
+      "adjoe",
+      "dporpag",
+      "stops",
+      "bpm",
+      "obpm",
+      "dbpm",
+      "gbpm",
+      "ogbpm",
+      "dgbpm",
+      "player_id"
+    ],
     "constant_columns": [],
-    "high_correlation_drop": []
+    "high_correlation_drop": [
+      "fta",
+      "twopa",
+      "tpa",
+      "rimmade_rimmiss",
+      "midmade_midmiss",
+      "dunksmiss_dunksmade",
+      "mp",
+      "treb"
+    ]
   },
   "used_columns": {
     "numeric": [
-      "1",
-      "3",
-      "5",
-      "11",
-      "12",
-      "13"
+      "gp",
+      "min_per",
+      "ortg",
+      "usg",
+      "efg",
+      "ts_per",
+      "orb_per",
+      "drb_per",
+      "ast_per",
+      "to_per",
+      "ftm",
+      "ft_per",
+      "twopm",
+      "twop_per",
+      "tpm",
+      "tp_per",
+      "blk_per",
+      "stl_per",
+      "ftr",
+      "pfr",
+      "year",
+      "ast_tov",
+      "rimmade",
+      "midmade",
+      "rim_ratio",
+      "mid_ratio",
+      "dunksmade",
+      "drtg",
+      "adrtg",
+      "oreb",
+      "dreb",
+      "ast",
+      "stl",
+      "blk",
+      "pts"
     ],
     "categorical": [
-      "2",
-      "4",
-      "6",
-      "7",
-      "8",
-      "9",
-      "10",
-      "14"
+      "team",
+      "conf",
+      "ht"
     ],
     "datetime": [],
     "text": [],
     "bool_as_numeric": []
   },
-  "final_feature_count": 63
+  "final_feature_count": 87
 }

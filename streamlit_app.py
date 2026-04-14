@@ -161,19 +161,19 @@ def friendly_metric(metric_key: str, value: float, problem_type: str) -> str:
     label, _ = score_label(value)
     if problem_type == "regression":
         msgs = {
-            "rmse":  f"预测误差（RMSE）为 {value:.3f}，表示模型预测值与真实值的平均偏差。",
-            "mae":   f"平均绝对误差（MAE）为 {value:.3f}。",
-            "r2":    f"模型解释了 {value*100:.1f}% 的目标变量方差（R²={value:.3f}）。",
+            "rmse":  f"Prediction error (RMSE) is {value:.3f}, representing the average deviation between predicted and actual values.",
+            "mae":   f"Mean Absolute Error (MAE) is {value:.3f}.",
+            "r2":    f"The model explains {value*100:.1f}% of the variance in the target variable (R²={value:.3f}).",
         }
         return msgs.get(metric_key, f"{metric_key.upper()} = {value:.3f}")
     else:
+        quality = ["reasonably well","well","excellently"][min(2,int((value-0.5)/0.175))]
         msgs = {
-            "roc_auc":  f"模型 ROC-AUC={value:.3f}（{label}），能{['较好','很好','优秀'][min(2,int((value-0.5)/0.175))]}"
-                        f"地区分不同类别。",
-            "f1":       f"F1={value:.3f}（{label}），综合了查全率和查准率。",
-            "accuracy": f"准确率 {value*100:.1f}%（{label}）。",
-            "precision":f"查准率 {value*100:.1f}%（{label}）——预测为正例时的可信度。",
-            "recall":   f"查全率 {value*100:.1f}%（{label}）——实际正例被发现的比例。",
+            "roc_auc":  f"Model ROC-AUC={value:.3f} ({label}) — discriminates between classes {quality}.",
+            "f1":       f"F1={value:.3f} ({label}), balancing precision and recall.",
+            "accuracy": f"Accuracy {value*100:.1f}% ({label}).",
+            "precision":f"Precision {value*100:.1f}% ({label}) — reliability when predicting positive cases.",
+            "recall":   f"Recall {value*100:.1f}% ({label}) — proportion of actual positives detected.",
         }
         return msgs.get(metric_key, f"{metric_key.upper()} = {value:.3f}")
 
@@ -210,17 +210,25 @@ def get_pipeline_data() -> dict:
     feat_imp       = load_csv("04_modelling/best_model_feature_importance.csv")
 
     mod_d          = report_input.get("modeling", {})
-    best_model_name= mod_d.get("best_model_name") or eval_summary.get("best_model_name","—")
-    primary_metric = mod_d.get("primary_metric","roc_auc")
-    lb_list        = mod_d.get("leaderboard", [])
+    best_model_name= (mod_d.get("best_model_name")
+                      or mod_d.get("best_model", {}).get("name")
+                      or eval_summary.get("best_model_name", "—"))
+    primary_metric = (eval_summary.get("primary_metric")
+                      or mod_d.get("primary_metric", "roc_auc"))
+    # lb_list: evaluation_summary.comparison_table uses "model_name" key (matches frontend);
+    # fall back to pipeline_report_input models_compared if needed
+    lb_list        = (eval_summary.get("benchmark_overview", {}).get("comparison_table")
+                      or mod_d.get("leaderboard")
+                      or mod_d.get("models_compared", []))
     feat_eng       = report_input.get("feature_engineering", {})
     final_feat_cnt = feat_eng.get("final_feature_count", len(feat_imp))
 
     clean_sum   = cleaning.get("cleaning_summary", {})
-    in_shape    = cleaning.get("input_data",  {}).get("shape", {})
-    out_shape   = cleaning.get("output_data", {}).get("shape", {})
-    n_rows_in   = in_shape.get("rows","—")
-    n_rows_out  = out_shape.get("rows","—")
+    # cleaning_report.json: input_data/output_data are flat dicts {rows, columns}, no "shape" nesting
+    in_shape    = cleaning.get("input_data",  {})
+    out_shape   = cleaning.get("output_data", {})
+    n_rows_in   = in_shape.get("rows", "—")
+    n_rows_out  = out_shape.get("rows", "—")
 
     bm = {}
     if best_metrics:
@@ -261,7 +269,7 @@ def get_pipeline_data() -> dict:
         exec_summary=understanding.get("executive_summary",""),
         problem_type=mo.get("problem_type","classification"),
         target_column=mo.get("target_column","—"),
-        business_report=report.get("business",""),
+        business_report=report.get("business_report", report.get("business", "")),
         timestamp=report_input.get("meta",{}).get("timestamp","—"),
     )
 
@@ -783,7 +791,8 @@ elif "仪表板" in view:
         k1,k2,k3,k4,k5 = st.columns(5)
         clean_sum = d["clean_sum"]
         k1.metric("原始样本",   d["n_rows_in"],  f"{d['in_shape'].get('columns','—')} 原始特征")
-        k2.metric("数据保留率", f"{clean_sum.get('data_retention_percentage',0):.0f}%",
+        k2.metric("数据保留率",
+                  f"{clean_sum.get('data_retention_pct', clean_sum.get('data_retention_percentage', 0)):.0f}%",
                   f"移除 {clean_sum.get('rows_removed',0)} 行")
         k3.metric("最终特征数", d["final_feat_cnt"], "特征选择后")
         k4.metric("候选模型数", len(lb), f"最优：{bmn.replace('_',' ').title()}")
@@ -821,16 +830,19 @@ elif "仪表板" in view:
         with c3:
             st.markdown(f'<div style="font-size:12px;font-weight:600;color:{SUB};text-transform:uppercase;'
                         f'letter-spacing:.06em;margin-bottom:8px;">质量检查</div>', unsafe_allow_html=True)
-            dqm = d["cleaning"].get("data_quality_metrics",{}).get("original",{})
+            _dqm2 = d["cleaning"].get("data_quality_metrics", {})
+            dqm = _dqm2.get("before_cleaning", _dqm2.get("original", {}))
             ids = fe.get("suspected_identifier_columns",[])
+            _nulls = dqm.get("null_count", dqm.get("null_values", 0))
+            _dups  = dqm.get("duplicate_rows", dqm.get("duplicates", 0))
             st.dataframe(pd.DataFrame({
                 "检查项":["缺失值","重复行","常量列","ID-like 列"],
-                "状态":["✓ 无" if dqm.get("null_values",0)==0 else f"⚠ {dqm.get('null_values')}",
-                         f"✓ {dqm.get('duplicates',0)}", "✓ 0",
+                "状态":["✓ 无" if _nulls == 0 else f"⚠ {_nulls}",
+                         f"✓ {_dups}", "✓ 0",
                          f"⚠ {len(ids)} 个" if ids else "✓ 无"]
             }), hide_index=True, use_container_width=True)
 
-        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown("<br>")
         st.markdown("### 主要发现")
         colors = [BLUE, ORANGE, GREEN, NAVY, CYAN]
         for i, f in enumerate(d["major_findings"]):
@@ -839,7 +851,7 @@ elif "仪表板" in view:
               <div class="det-dot" style="background:{c};"></div>
               <div style="font-size:13px;color:#24364B;">{f}</div></div>""", unsafe_allow_html=True)
 
-        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown("<br>")
         st.markdown("### 风险 & 后续建议")
         rc1, rc2 = st.columns(2)
         with rc1:
@@ -864,25 +876,31 @@ elif "仪表板" in view:
         k1.metric("输入行数",  d["n_rows_in"],  f"{d['in_shape'].get('columns','—')} 列")
         k2.metric("输出行数",  d["n_rows_out"], f"{d['out_shape'].get('columns','—')} 列")
         k3.metric("移除行数",  cs.get("rows_removed",0), "异常/重复")
-        k4.metric("保留率",    f"{cs.get('data_retention_percentage',0):.1f}%",
-                  "✓ 优秀" if float(cs.get("data_retention_percentage",0) or 0)>=95 else "⚠ 偏低")
-        st.markdown("<br>", unsafe_allow_html=True)
+        _ret = float(cs.get('data_retention_pct', cs.get('data_retention_percentage', 0)) or 0)
+        k4.metric("保留率", f"{_ret:.1f}%",
+                  "✓ 优秀" if _ret >= 95 else "⚠ 偏低")
+        st.markdown("<br>")
         c1,c2 = st.columns(2)
         with c1:
             st.markdown("### 清洗前后对比")
-            dqo = d["cleaning"].get("data_quality_metrics",{}).get("original",{})
-            dqp = d["cleaning"].get("data_quality_metrics",{}).get("processed",{}) or {}
+            _dqm = d["cleaning"].get("data_quality_metrics", {})
+            dqo = _dqm.get("before_cleaning", _dqm.get("original", {}))
+            dqp = _dqm.get("after_cleaning",  _dqm.get("processed", {})) or {}
             st.dataframe(pd.DataFrame({
                 "指标":["完整率 (%)","重复行","空值","异常行"],
-                "清洗前":[dqo.get("completeness",100),dqo.get("duplicates",0),
-                           dqo.get("null_values",0),cs.get("rows_removed",0)],
-                "清洗后":[dqp.get("completeness",100),dqp.get("duplicates",0),
-                           dqp.get("null_values",0),0],
+                "清洗前":[dqo.get("completeness_pct", dqo.get("completeness", 100)),
+                           dqo.get("duplicate_rows",  dqo.get("duplicates", 0)),
+                           dqo.get("null_count",       dqo.get("null_values", 0)),
+                           cs.get("rows_removed", 0)],
+                "清洗后":[dqp.get("completeness_pct", dqp.get("completeness", 100)),
+                           dqp.get("duplicate_rows",  dqp.get("duplicates", 0)),
+                           dqp.get("null_count",       dqp.get("null_values", 0)),
+                           0],
             }), hide_index=True, use_container_width=True)
         with c2:
             st.markdown("### 执行的操作")
             ops = [("列名标准化","snake_case"),
-                   (f"移除重复行",f"{dqo.get('duplicates',0)} 行"),
+                   (f"移除重复行",f"{dqo.get('duplicate_rows', dqo.get('duplicates', 0))} 行"),
                    ("缺失值填充","中位数填充"),
                    (f"IQR 异常值过滤",f"移除 {cs.get('rows_removed',0)} 行")]
             for label, tag in ops:
@@ -904,7 +922,7 @@ elif "仪表板" in view:
         k3.metric("测试样本",    d["n_test"]  or "—","~20%")
         k4.metric("交叉验证折数", 5, "分层 K-fold")
 
-        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown("<br>")
         c1,c2 = st.columns(2)
         with c1:
             st.markdown("### 特征重要性排名")
@@ -1123,7 +1141,7 @@ elif "仪表板" in view:
             else:
                 st.info("暂无业务报告。")
         with rt2:
-            tr = d["report"].get("technical","")
+            tr = d["report"].get("technical_report", d["report"].get("technical", ""))
             if tr:
                 st.markdown(tr)
             else:

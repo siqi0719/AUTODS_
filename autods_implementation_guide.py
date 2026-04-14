@@ -1012,6 +1012,21 @@ class DataSciencePipeline:
                 print(f"❌ Report generation failed: {err}")
                 raise Exception(f"Report generation failed: {err}")
 
+            # Persist report content to report.json so the Streamlit frontend can read it
+            report_output_path = self.config.stage_dirs[6] / "report.json"
+            serializable_result = {
+                "status":           result.get("status"),
+                "agent_name":       result.get("agent_name"),
+                "generation_mode":  result.get("generation_mode"),
+                "generated_at":     str(pd.Timestamp.now()),
+                "technical_report": result.get("technical_report", ""),
+                "business_report":  result.get("business_report", ""),
+                "saved_paths":      result.get("saved_paths"),
+            }
+            with open(report_output_path, 'w', encoding='utf-8') as f:
+                json.dump(serializable_result, f, indent=2, ensure_ascii=False, default=str)
+            print(f"  [✓] report.json saved: {report_output_path}")
+
             # Store results
             self.stage_outputs[6] = {
                 'final_report': result,

@@ -1,57 +1,112 @@
 {
   "metadata": {
     "agent_name": "DataCleaner",
-    "timestamp": "2026-03-31T16:59:48.042057",
+    "timestamp": "2026-04-14T19:12:14.326055",
     "version": "2.0"
   },
   "input_data": {
-    "rows": 32561,
-    "columns": 15
+    "rows": 14774,
+    "columns": 62
   },
   "output_data": {
-    "rows": 22636,
-    "columns": 15
+    "rows": 12312,
+    "columns": 58
   },
   "cleaning_summary": {
-    "rows_removed": 9925,
-    "columns_dropped": [],
-    "columns_dropped_cnt": 0,
-    "data_retention_pct": 69.52
+    "rows_removed": 2462,
+    "columns_dropped": [
+      "yr",
+      "type",
+      "rec_rank",
+      "dunks_ratio"
+    ],
+    "columns_dropped_cnt": 4,
+    "data_retention_pct": 83.34
   },
   "column_classification": {
     "id_columns": [],
     "numeric_columns": [
-      "1",
-      "5",
-      "11",
-      "12",
-      "13"
+      "gp",
+      "min_per",
+      "ortg",
+      "usg",
+      "efg",
+      "ts_per",
+      "orb_per",
+      "drb_per",
+      "ast_per",
+      "to_per",
+      "ftm",
+      "fta",
+      "ft_per",
+      "twopm",
+      "twopa",
+      "twop_per",
+      "tpm",
+      "tpa",
+      "tp_per",
+      "blk_per",
+      "stl_per",
+      "ftr",
+      "porpag",
+      "adjoe",
+      "pfr",
+      "year",
+      "ast_tov",
+      "rimmade",
+      "rimmade_rimmiss",
+      "midmade",
+      "midmade_midmiss",
+      "rim_ratio",
+      "mid_ratio",
+      "dunksmade",
+      "dunksmiss_dunksmade",
+      "drtg",
+      "adrtg",
+      "dporpag",
+      "stops",
+      "bpm",
+      "obpm",
+      "dbpm",
+      "gbpm",
+      "mp",
+      "ogbpm",
+      "dgbpm",
+      "oreb",
+      "dreb",
+      "treb",
+      "ast",
+      "stl",
+      "blk",
+      "pts",
+      "drafted"
     ],
     "categorical_columns": [
-      "2",
-      "4",
-      "6",
-      "7",
-      "8",
-      "9",
-      "10",
-      "14",
-      "15"
+      "team",
+      "conf",
+      "ht",
+      "player_id"
     ],
-    "special_format_columns": [
-      "3"
-    ],
+    "special_format_columns": [],
     "datetime_columns": [],
     "boolean_columns": [],
-    "constant_columns": [],
-    "dropped_columns": []
+    "constant_columns": [
+      "yr",
+      "type"
+    ],
+    "dropped_columns": [
+      "yr",
+      "type",
+      "rec_rank",
+      "dunks_ratio"
+    ]
   },
   "data_quality_metrics": {
     "before_cleaning": {
-      "completeness_pct": 100.0,
-      "null_count": 0,
-      "null_pct": 0.0,
-      "duplicate_rows": 24
+      "completeness_pct": 95.66,
+      "null_count": 39718,
+      "null_pct": 4.34,
+      "duplicate_rows": 2462
     },
     "after_cleaning": {
       "completeness_pct": 100.0,
@@ -61,8 +116,8 @@
     }
   },
   "cleaning_operations": {
-    "anomaly_strategy": "remove",
-    "iqr_multiplier": 1.5,
+    "anomaly_strategy": "clip",
+    "iqr_multiplier": 3.0,
     "llm_enabled": false
   }
 }

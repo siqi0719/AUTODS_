@@ -1,224 +1,119 @@
-# Data Science Project Report
+# AutoDS Report Package
 
 ## Technical Report
 
-# Technical Report
+# Executive Summary
 
-Generated: 2026-03-31 16:59:43
+This technical report was generated with the built-in template mode. The project analyses **adult.csv** for **15** using a **classification** workflow. The selected model is **lightgbm**, and the primary metric **roc_auc** reached **0.914**.
 
-## 1. Project Overview
+## 1. Data Overview and Quality Assessment
 
-- **Project Name**: AutoDS Pipeline
-- **Dataset**: Processed Dataset
-- **Problem Type**: Classification
+- Dataset size: 32,561 rows and 15 columns.
+- Rows after cleaning: 22,636.
+- Class imbalance ratio: N/A.
+- Data quality score: N/A.
+- Quality notes: {"metadata": {"agent_name": "DataCleaner", "timestamp": "2026-04-02T17:09:47.314790", "version": "2.0"}, "input_data": {"rows": 32561, "columns": 15}, "output_data": {"rows": 22636, "columns": 15}, "cleaning_summary": {"rows_removed": 9925, "columns_dropped": [], "columns_dropped_cnt": 0, "data_retention_pct": 69.52}, "column_classification": {"id_columns": [], "numeric_columns": ["1", "5", "11", "12", "13"], "categorical_columns": ["2", "4", "6", "7", "8", "9", "10", "14", "15"], "special_format_columns": ["3"], "datetime_columns": [], "boolean_columns": [], "constant_columns": [], "dropped_columns": []}, "data_quality_metrics": {"before_cleaning": {"completeness_pct": 100.0, "null_count": 0, "null_pct": 0.0, "duplicate_rows": 24}, "after_cleaning": {"completeness_pct": 100.0, "null_count": 0, "null_pct": 0.0, "duplicate_rows": 0}}, "cleaning_operations": {"anomaly_strategy": "remove", "iqr_multiplier": 1.5, "llm_enabled": false}}.
 
-## 2. Data Analysis
+- N/A
 
-### Raw Data
-- **Total Samples**: Unknown
-- **Feature Count**: Unknown
-- **Missing Values**: Unknown
+## 2. Feature Engineering Analysis
 
-### Target Variable
-- **Type**: Binary Classification
-- **Distribution**: Unknown
+Features created: {"numeric": ["1", "3", "5", "11", "12", "13"], "categorical": ["2", "4", "6", "7", "8", "9", "10", "14"], "datetime": [], "text": [], "bool_as_numeric": []}.
+Features dropped: {"general_drop": [], "constant_columns": [], "high_correlation_drop": []}.
+Encoding or transformation steps: N/A.
+Top feature signals:
+- Unknown feature (2,054)
+- Unknown feature (1,591)
+- Unknown feature (733)
+- Unknown feature (671)
+- Unknown feature (600)
 
-## 3. Data Cleaning
+- N/A
 
-### Cleaning Process
-- **Original Rows**: 100
-- **Cleaned Rows**: 97
-- **Rows Removed**: 3
-- **Data Retention Rate**: 97%
+## 3. Model Comparison and Selection
 
-### Outlier Treatment
-- Outliers Removed: 3 rows
-- Missing Value Treatment: Median imputation
+- Selected model: **lightgbm**.
+- Selection reason: Highest roc_auc score on held-out test set..
+- Optimization or selection strategy: N/A.
+- Training time (seconds): N/A.
 
-## 4. Feature Engineering
+## 4. Performance Evaluation
 
-### Feature Statistics
-- **Engineered Features**: 3
-- **Training Set Features**: 3
-- **Test Set Features**: 3
+| Metric | Value |
+| --- | --- |
+| Rank | 1 |
+| Cv Runtime Seconds | 1.895 |
+| Cv Accuracy | 0.86 |
+| Cv Precision | 0.772 |
+| Cv Recall | 0.665 |
+| Cv F1 | 0.714 |
+| Cv Roc Auc | 0.919 |
+| Cv Std Accuracy | 0.004 |
+| Cv Std Precision | 0.008 |
+| Cv Std Recall | 0.012 |
+| Cv Std F1 | 0.01 |
+| Cv Std Roc Auc | 0.004 |
+| Test Accuracy | 0.854 |
+| Test Precision | 0.755 |
+| Test Recall | 0.656 |
+| Test F1 | 0.702 |
+| Test Roc Auc | 0.914 |
+| Training Error | nan |
 
-### Train/Test Split
-- **Training Set Size**: 77 samples
-- **Test Set Size**: 20 samples
-- **Split Ratio**: 80/20
+| Confusion Matrix Item | Value |
+| --- | --- |
+| N/A | N/A |
 
-## 5. Model Building
+- N/A
 
-### Model Configuration
-- **Best Model**: Pipeline(steps=[('imputer', SimpleImputer(strategy='median')),
-                ('model',
-                 LGBMClassifier(learning_rate=0.05, n_estimators=300,
-                                random_state=42, verbose=-1))])
-- **Number of Models Trained**: 5
+## 5. Technical Recommendations and Improvement Directions
 
-### Model Characteristics
-- Uses Gradient Boosting Decision Trees
-- Automatic hyperparameter optimization
-- Cross-validation evaluation
+### Improvement Recommendations
 
-## 6. Model Evaluation
+- Establish a monitoring plan for feature drift, score drift, and periodic model refresh.
+- Collect additional explanatory variables to improve model robustness and actionability.
 
-### Performance Metrics
-- **Primary Metric**: roc_auc
-- **Best Model**: LightGBM
-- **Number of Candidate Models**: 5
+### Recommended Visualizations
 
-### Model Selection Criteria
-- Selection based on primary metric (ROC-AUC)
-- Consideration of overfitting risk
-- Balance between model complexity and performance
-
-## 7. Conclusions and Recommendations
-
-### Key Findings
-1. Good data quality with 97% data retention rate
-2. Feature engineering effectively reduced feature dimensionality
-3. LightGBM model performs optimally on this dataset
-
-### Recommendations
-1. **Model Deployment**: The model can be deployed to production environment
-2. **Monitoring**: Continuously monitor model performance and data distribution changes
-3. **Improvement Directions**:
-   - Collect more data to improve model generalization
-   - Try ensemble methods to further improve performance
-   - Periodically retrain model
-
-## 8. Technical Implementation Details
-
-### Data Processing
-- Outliers: Detected and removed using IQR method
-- Missing Values: Treated with median imputation
-- Feature Scaling: Standardization applied
-
-### Model Algorithms
-- Base Models: LightGBM, XGBoost, Random Forest
-- Cross-Validation: 5-fold cross-validation
-- Evaluation Metrics: ROC-AUC, Accuracy, F1-Score
-
----
-
-**Report Generation Time**: 2026-03-31T16:59:43.528750
-
+- Top-10 feature importance bar chart
+- Confusion matrix heatmap
+- ROC curve
+- Precision-recall curve
 
 ---
 
 ## Business Report
 
-# Business Report
+# Executive Summary
 
-Generated: 2026-03-31 16:59:43
+This business report translates the **adult.csv** model output into action for **This is the UCI Adult (Census Income) dataset extracted from the 1994 US Census database. The goal is to predict whether a person's annual income exceeds $50,000 (binary classification). The target column is 'income' (values: '>50K' or '<=50K'). Input features include demographic and employment information: age, workclass, fnlwgt (census sampling weight), education, education-num, marital-status, occupation, relationship, race, sex, capital-gain, capital-loss, hours-per-week, and native-country. The dataset has approximately 48,842 instances with a mix of continuous and categorical features. Some records contain unknown values denoted by '?' — these should be treated as a separate category for categorical features rather than dropped. The class distribution is heavily imbalanced: approximately 24% earn >50K and 76% earn <=50K, so ROC-AUC and F1-score are preferred over accuracy as primary metrics. The positive class is '>50K'. Interpretability is important as this is a socioeconomic prediction task — Logistic Regression, Decision Tree, and Random Forest are preferred. Note that 'fnlwgt' is a census sampling weight, not a predictive demographic feature, and may be excluded or treated with caution.**. The primary metric **roc_auc** is **0.914**, and the recommended first-wave decisions should use threshold **N/A**.
 
-## Executive Summary
+## 1. Key Findings
 
-This report summarizes the outcomes of an end-to-end data science project, including data analysis, cleaning, feature engineering, modeling, and evaluation.
+- Business goal: This is the UCI Adult (Census Income) dataset extracted from the 1994 US Census database. The goal is to predict whether a person's annual income exceeds $50,000 (binary classification). The target column is 'income' (values: '>50K' or '<=50K'). Input features include demographic and employment information: age, workclass, fnlwgt (census sampling weight), education, education-num, marital-status, occupation, relationship, race, sex, capital-gain, capital-loss, hours-per-week, and native-country. The dataset has approximately 48,842 instances with a mix of continuous and categorical features. Some records contain unknown values denoted by '?' — these should be treated as a separate category for categorical features rather than dropped. The class distribution is heavily imbalanced: approximately 24% earn >50K and 76% earn <=50K, so ROC-AUC and F1-score are preferred over accuracy as primary metrics. The positive class is '>50K'. Interpretability is important as this is a socioeconomic prediction task — Logistic Regression, Decision Tree, and Random Forest are preferred. Note that 'fnlwgt' is a census sampling weight, not a predictive demographic feature, and may be excluded or treated with caution..
+- Target audience: Data Science Team.
+- Primary metric roc_auc: 0.914.
+- Decision threshold: N/A.
+- Preferred strategy: N/A.
 
-### Project Achievements
-- ✅ Data successfully cleaned and processed
-- ✅ Feature engineering completed with 3 engineered features
-- ✅ Model training completed with Pipeline(steps=[('imputer', SimpleImputer(strategy='median')),
-                ('model',
-                 LGBMClassifier(learning_rate=0.05, n_estimators=300,
-                                random_state=42, verbose=-1))]) as the best model
-- ✅ Model performance is good with excellent roc_auc score
+## 2. Immediate Action Recommendations
 
-## Project Background
+| Priority | Action | Owner | Timeline | Expected Result | Required Resources |
+| --- | --- | --- | --- | --- | --- |
+| High | Launch the first intervention wave for cases above threshold N/A and prioritize the top N/A cases. | Data Science Team | 1-2 weeks | Focus limited operational capacity on the highest-value high-risk cases. | N/A |
+| Medium | Create a human-review and feedback loop so intervention outcomes feed back into model monitoring. | Data Science Team | 2-4 weeks | Improve explainability, operational trust, and the evidence base for the next model refresh. | Review workflow, outcome tracking sheet, recurring governance meeting |
 
-**Business Objective**: This is the UCI Adult (Census Income) dataset extracted from the 1994 US Census database. The goal is to predict whether a person's annual income exceeds $50,000 (binary classification). The target column is 'income' (values: '>50K' or '<=50K'). Input features include demographic and employment information: age, workclass, fnlwgt (census sampling weight), education, education-num, marital-status, occupation, relationship, race, sex, capital-gain, capital-loss, hours-per-week, and native-country. The dataset has approximately 48,842 instances with a mix of continuous and categorical features. Some records contain unknown values denoted by '?' — these should be treated as a separate category for categorical features rather than dropped. The class distribution is heavily imbalanced: approximately 24% earn >50K and 76% earn <=50K, so ROC-AUC and F1-score are preferred over accuracy as primary metrics. The positive class is '>50K'. Interpretability is important as this is a socioeconomic prediction task — Logistic Regression, Decision Tree, and Random Forest are preferred. Note that 'fnlwgt' is a census sampling weight, not a predictive demographic feature, and may be excluded or treated with caution.
+## 3. ROI Analysis
 
-**Key Business Problem**: This is the UCI Adult (Census Income) dataset extracted from the 1994 US Census database. The goal is to predict whether a person's annual income exceeds $50,000 (binary classification). The target column is 'income' (values: '>50K' or '<=50K'). Input features include demographic and employment information: age, workclass, fnlwgt (census sampling weight), education, education-num, marital-status, occupation, relationship, race, sex, capital-gain, capital-loss, hours-per-week, and native-country. The dataset has approximately 48,842 instances with a mix of continuous and categorical features. Some records contain unknown values denoted by '?' — these should be treated as a separate category for categorical features rather than dropped. The class distribution is heavily imbalanced: approximately 24% earn >50K and 76% earn <=50K, so ROC-AUC and F1-score are preferred over accuracy as primary metrics. The positive class is '>50K'. Interpretability is important as this is a socioeconomic prediction task — Logistic Regression, Decision Tree, and Random Forest are preferred. Note that 'fnlwgt' is a census sampling weight, not a predictive demographic feature, and may be excluded or treated with caution.
+Exact ROI cannot be calculated because the following inputs are missing: case_count, action_cost_per_case, value_per_case. Add them to the JSON payload for a precise estimate.
 
-**Target Audience**: Data Science Team
+## 4. Risk Notes
 
-## Key Findings
+- Monitor data quality, model drift, and operational adoption risks during rollout.
+- Confirm privacy, fairness, and governance controls before using predictions in production.
 
-### Data Quality
-- Anomalous values in raw data have been successfully identified and treated
-- Data retention rate reaches 97%, indicating good data quality
-- No critical data quality issues
+## 5. Implementation Roadmap
 
-### Predictive Capability
-- The constructed model demonstrates good predictive capability
-- roc_auc metric shows excellent performance
-- Model performance on test set is stable and reliable
-
-### Business Value
-- The model can be applied to real business scenarios
-- Automated prediction can improve decision-making efficiency
-- Expected to bring significant value to the business
-
-## Recommended Actions
-
-### Short-term Actions (1-2 weeks)
-1. **Model Validation**: Have domain experts validate the model's business logic
-2. **Pilot Deployment**: Conduct pilot testing in limited scope
-3. **Documentation**: Prepare model usage and maintenance documentation
-
-### Mid-term Actions (1 month)
-1. **Production Deployment**: Deploy model to production environment
-2. **Monitoring Setup**: Establish model performance monitoring system
-3. **User Training**: Train users on model usage
-
-### Long-term Actions (Ongoing)
-1. **Performance Monitoring**: Continuously monitor model performance and data distribution
-2. **Regular Updates**: Periodically retrain model with new data
-3. **Feedback Collection**: Collect user feedback for model optimization
-
-## Expected Benefits
-
-### Quantitative Benefits
-- Automation Rate: Increased by XX%
-- Prediction Accuracy: roc_auc
-- Processing Cost: Reduced by XX%
-
-### Qualitative Benefits
-- Improved decision-making efficiency
-- Reduced manual work effort
-- Enhanced business processes
-
-## Technical Architecture
-
-### Data Flow
-```
-Raw Data → Data Cleaning → Feature Engineering → Model Training → 
-Model Evaluation → Model Deployment
-```
-
-### Key Components
-- Data Processing Layer: Data cleaning and feature engineering
-- Modeling Layer: Multiple algorithm comparison and selection
-- Evaluation Layer: Performance metrics assessment
-- Deployment Layer: Model deployment and monitoring
-
-## Risk Assessment
-
-### Low Risk
-- Good data quality
-- Stable model performance
-
-### Medium Risk
-- Potential data distribution changes
-- Requires regular monitoring and updates
-
-### Risk Mitigation Measures
-- Establish data quality monitoring
-- Conduct regular model performance evaluation
-- Prepare contingency plans
-
-## Return on Investment (ROI)
-
-### Cost Investment
-- Development Time: XX person-days
-- Infrastructure: XX currency units
-
-### Expected Returns
-- Annual Benefits: XX currency units
-- ROI Payback Period: XX months
-
----
-
-**Report Generation Time**: 2026-03-31T16:59:43.528750
+- Phase 1 (1-2 weeks): align on goals, thresholds, and review ownership for This is the UCI Adult (Census Income) dataset extracted from the 1994 US Census database. The goal is to predict whether a person's annual income exceeds $50,000 (binary classification). The target column is 'income' (values: '>50K' or '<=50K'). Input features include demographic and employment information: age, workclass, fnlwgt (census sampling weight), education, education-num, marital-status, occupation, relationship, race, sex, capital-gain, capital-loss, hours-per-week, and native-country. The dataset has approximately 48,842 instances with a mix of continuous and categorical features. Some records contain unknown values denoted by '?' — these should be treated as a separate category for categorical features rather than dropped. The class distribution is heavily imbalanced: approximately 24% earn >50K and 76% earn <=50K, so ROC-AUC and F1-score are preferred over accuracy as primary metrics. The positive class is '>50K'. Interpretability is important as this is a socioeconomic prediction task — Logistic Regression, Decision Tree, and Random Forest are preferred. Note that 'fnlwgt' is a census sampling weight, not a predictive demographic feature, and may be excluded or treated with caution..
+- Phase 2 (2-4 weeks): run the first intervention pilot and capture outcome feedback.
+- Phase 3 (ongoing): monitor performance, review ROI, and refresh the model on a regular cadence.

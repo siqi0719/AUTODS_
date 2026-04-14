@@ -1,0 +1,39 @@
+{
+  "stage_id": "stage_4",
+  "stage_name": "ModellingAgent",
+  "status": "success",
+  "timestamp": "2026-04-14T09:12:16.703448+00:00",
+  "summary": "Best model: logistic_regression (roc_auc=0.9870) on classification task; 3/3 models trained successfully.",
+  "key_outputs": {
+    "models_attempted": [
+      "logistic_regression",
+      "random_forest",
+      "xgboost"
+    ],
+    "models_succeeded": [
+      "logistic_regression",
+      "random_forest",
+      "xgboost"
+    ],
+    "best_model_name": "logistic_regression",
+    "best_model_score": 0.9870062557754178,
+    "primary_metric_used": "roc_auc",
+    "leaderboard_top3": [
+      {
+        "model": "logistic_regression",
+        "score": 0.9870062557754178
+      },
+      {
+        "model": "random_forest",
+        "score": 0.9800906195218063
+      },
+      {
+        "model": "xgboost",
+        "score": null
+      }
+    ],
+    "training_skipped_reason": {}
+  },
+  "decisions": [],
+  "warnings": []
+}
