@@ -1,10 +1,10 @@
 {
   "meta": {
     "project_name": "AutoDS Pipeline",
-    "dataset_name": "d:\\LangChain\\AUTODS_\\_uploaded_data_temp.csv",
+    "dataset_name": "D:\\LangChain\\AUTODS_\\_uploaded_data_temp.csv",
     "target_variable": "drafted",
     "task_type": "classification",
-    "timestamp": "2026-04-14 19:12:24.134089",
+    "timestamp": "2026-04-14 22:05:17.450555",
     "models_evaluated": 3
   },
   "data_understanding": {
@@ -21,7 +21,7 @@
     "quality_notes": {
       "metadata": {
         "agent_name": "DataCleaner",
-        "timestamp": "2026-04-14T19:12:14.326055",
+        "timestamp": "2026-04-14T22:04:55.892233",
         "version": "2.0"
       },
       "input_data": {
@@ -581,7 +581,7 @@
       {
         "name": "logistic_regression",
         "rank": 1,
-        "cv_runtime_seconds": 0.5836,
+        "cv_runtime_seconds": 0.7437,
         "cv_accuracy": 0.9804044929916239,
         "cv_precision": 0.26748514643251486,
         "cv_recall": 0.8083333333333333,
@@ -601,7 +601,7 @@
       {
         "name": "random_forest",
         "rank": 2,
-        "cv_runtime_seconds": 3.1269,
+        "cv_runtime_seconds": 3.3477,
         "cv_accuracy": 0.9926896334813984,
         "cv_precision": 0.6633333333333333,
         "cv_recall": 0.1683333333333333,
@@ -621,7 +621,7 @@
       {
         "name": "xgboost",
         "rank": 3,
-        "cv_runtime_seconds": 1.5477,
+        "cv_runtime_seconds": 2.0391,
         "cv_accuracy": 0.9925881621993694,
         "cv_precision": 0.5476190476190477,
         "cv_recall": 0.2983333333333333,
@@ -646,7 +646,7 @@
     "primary_score": 0.992182789215264,
     "metrics": {
       "rank": 1,
-      "cv_runtime_seconds": 0.5836,
+      "cv_runtime_seconds": 0.7437,
       "cv_accuracy": 0.9804044929916239,
       "cv_precision": 0.26748514643251486,
       "cv_recall": 0.8083333333333333,

@@ -1,7 +1,7 @@
 {
   "rank": 1,
   "model_name": "logistic_regression",
-  "cv_runtime_seconds": 0.5836,
+  "cv_runtime_seconds": 0.7437,
   "cv_accuracy": 0.9804044929916239,
   "cv_precision": 0.26748514643251486,
   "cv_recall": 0.8083333333333333,

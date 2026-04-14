@@ -2,7 +2,7 @@
   "stage_id": "stage_4",
   "stage_name": "ModellingAgent",
   "status": "success",
-  "timestamp": "2026-04-14T09:12:16.703448+00:00",
+  "timestamp": "2026-04-14T12:05:08.820237+00:00",
   "summary": "Best model: logistic_regression (roc_auc=0.9870) on classification task; 3/3 models trained successfully.",
   "key_outputs": {
     "models_attempted": [
