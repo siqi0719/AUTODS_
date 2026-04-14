@@ -674,15 +674,22 @@ class DataSciencePipeline:
                 for n in planner_names
             ] or None
 
+            # Resolve primary_metric — discard any cross-type metric the LLM may have
+            # returned (e.g. roc_auc for a regression task).
+            _clf_metrics = {"roc_auc", "f1", "accuracy", "precision", "recall"}
+            _reg_metrics  = {"rmse", "mae", "r2", "mse"}
+            _raw_metric = mc_cfg.get("primary_metric") or self._planner_plan.get("primary_metric")
+            if self.config.problem_type == "regression" and _raw_metric in _clf_metrics:
+                _raw_metric = "rmse"
+            elif self.config.problem_type == "classification" and _raw_metric in _reg_metrics:
+                _raw_metric = "roc_auc"
+
             # Configure agent
             config = ModellingConfig(
                 target_column=self.config.target_column,
                 problem_type=self.config.problem_type,
                 task_description="AutoDS Modelling",
-                primary_metric=mc_cfg.get(
-                    "primary_metric",
-                    self._planner_plan.get("primary_metric"),
-                ),
+                primary_metric=_raw_metric,
                 cv_folds=mc_cfg.get("cv_folds", 5),
                 candidate_model_names=validated_names,
                 output_dir=str(self.config.stage_dirs[4]),

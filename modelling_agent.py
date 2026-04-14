@@ -119,8 +119,17 @@ class ModellingConfig:
     upstream_context: Optional[Dict[str, Any]] = None
 
     def resolved_primary_metric(self) -> str:
-        if self.primary_metric:
-            return self.primary_metric
+        _CLF_METRICS = {"roc_auc", "f1", "accuracy", "precision", "recall"}
+        _REG_METRICS  = {"rmse", "mae", "r2", "mse"}
+        metric = self.primary_metric
+        if metric:
+            # If the LLM returned a metric that belongs to the wrong problem type,
+            # silently replace it with the correct default.
+            if self.problem_type == "regression" and metric in _CLF_METRICS:
+                return "rmse"
+            if self.problem_type == "classification" and metric in _REG_METRICS:
+                return "roc_auc"
+            return metric
         return "roc_auc" if self.problem_type == "classification" else "rmse"
 
 
