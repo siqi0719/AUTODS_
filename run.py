@@ -2,10 +2,15 @@
 """
 AUTODS 0.0.1
 """
-import httpx
-http_client = httpx.Client(transport=httpx.HTTPTransport(local_address="0.0.0.0"))
 import sys
 import os
+
+# Force UTF-8 output on Windows (avoids GBK UnicodeEncodeError for ✓ etc.)
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
 import pandas as pd
 import numpy as np
 from pathlib import Path
@@ -86,7 +91,7 @@ except ImportError as e:
 print("🔧 step 3：config...")
 
 config = PipelineConfig()
-config.data_path = "rental_training.csv"
+config.data_path = "train.csv"
 # config.csv_sep is None by default — the pipeline auto-detects the separator.
 # Override only when auto-detection fails, e.g.:
 #   config.csv_sep = ";"   # for Bank Marketing and other semicolon-delimited files
@@ -98,12 +103,12 @@ config.random_state = 42
 # If you already know target_column / problem_type, set them here and the Planner
 # will keep your values and only fill in the rest.
 config.business_description = (
-"I'm a real estate agent, and I need you to analyze this data for me and tell me what to do next."
+"I need you to analyze this data for me and tell me what to do next."
 )
 config.use_planner = True   # set False to skip Stage 0 entirely
 
 # Optional: override Planner's inference if you already know these values.
-config.target_column = "rent"             # keep None to let Planner infer
+config.target_column = "drafted"             # keep None to let Planner infer
 config.problem_type = "regression" # keep None to let Planner infer
 # ─────────────────────────────────────────────────────────────────────────────
 

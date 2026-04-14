@@ -8,6 +8,13 @@ Author: AutoDS Team
 Created: 2026-03-19
 """
 
+import sys as _sys
+if hasattr(_sys.stdout, "reconfigure"):
+    try:
+        _sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 import os
 import sys
 from pathlib import Path
