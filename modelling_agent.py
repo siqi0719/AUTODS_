@@ -1022,7 +1022,18 @@ Recommend a concise shortlist for the current phase.
         requested_names = self.config.candidate_model_names
         if requested_names:
             requested_set = set(requested_names)
-            models = [model for model in models if model.name in requested_set]
+            filtered = [model for model in models if model.name in requested_set]
+            if filtered:
+                models = filtered
+            else:
+                # None of the requested names matched available models — fall back to
+                # all defaults rather than crashing.  This happens when the LLM returns
+                # names for the wrong problem type (e.g. classification names for a
+                # regression task) or names that don't exist in the registry.
+                print(
+                    f"  [ModellingAgent] ⚠ Requested models {list(requested_names)} "
+                    f"not found in {self.config.problem_type} registry — using all defaults."
+                )
 
         # Filter models skipped due to upstream context (data-scale rules)
         if self._upstream_skip_models_:

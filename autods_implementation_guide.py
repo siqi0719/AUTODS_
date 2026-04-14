@@ -637,29 +637,37 @@ class DataSciencePipeline:
             mc_cfg = self._planner_plan.get("modelling_config", {})
 
             # Normalize planner model names to the snake_case names used by ModellingAgent.
-            # Planner LLM returns PascalCase (e.g. "RandomForest"); the agent uses
-            # snake_case (e.g. "random_forest"). Unrecognised names are passed through
-            # unchanged — ModellingAgent will silently skip them and log a warning.
-            _NAME_MAP = {
-                # classification
-                "logisticregression":   "logistic_regression",
-                "randomforest":         "random_forest",
-                "svc":                  "svm_rbf",
-                "svm":                  "svm_rbf",
-                "xgboost":              "xgboost",
-                "lightgbm":             "lightgbm",
-                "decisiontree":         "random_forest",  # closest available
-                "kneighbors":           "logistic_regression",
-                "gradientboosting":     "xgboost",
-                # regression
-                "linearregression":     "ridge_regression",
-                "ridge":                "ridge_regression",
-                "lasso":                "ridge_regression",
-                "randomforestregressor":"random_forest_regressor",
-                "svr":                  "svr_rbf",
-                "xgboostregressor":     "xgboost_regressor",
-                "lightgbmregressor":    "lightgbm_regressor",
+            # Uses two maps — one per problem type — so generic names like "random_forest"
+            # or "xgboost" resolve to the correct regression / classification variant.
+            _is_regression = (self.config.problem_type == "regression")
+            _NAME_MAP_CLF = {
+                "logisticregression":  "logistic_regression",
+                "randomforest":        "random_forest",
+                "svc":                 "svm_rbf",
+                "svm":                 "svm_rbf",
+                "xgboost":             "xgboost",
+                "lightgbm":            "lightgbm",
+                "decisiontree":        "random_forest",
+                "kneighbors":          "logistic_regression",
+                "gradientboosting":    "xgboost",
             }
+            _NAME_MAP_REG = {
+                "linearregression":        "ridge_regression",
+                "ridge":                   "ridge_regression",
+                "ridgeregression":         "ridge_regression",
+                "lasso":                   "ridge_regression",
+                "randomforest":            "random_forest_regressor",
+                "randomforestregressor":   "random_forest_regressor",
+                "xgboost":                 "xgboost_regressor",
+                "xgboostregressor":        "xgboost_regressor",
+                "gradientboosting":        "xgboost_regressor",
+                "lightgbm":                "lightgbm_regressor",
+                "lightgbmregressor":       "lightgbm_regressor",
+                "svr":                     "svr_rbf",
+                "svrrbf":                  "svr_rbf",
+                "logisticregression":      "ridge_regression",  # fallback
+            }
+            _NAME_MAP = _NAME_MAP_REG if _is_regression else _NAME_MAP_CLF
             planner_names = mc_cfg.get("candidate_model_names") or []
             validated_names = [
                 _NAME_MAP.get(n.lower().replace("_", "").replace("-", ""), n)
