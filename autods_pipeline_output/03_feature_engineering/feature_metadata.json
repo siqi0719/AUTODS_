@@ -1,6 +1,6 @@
 {
   "config": {
-    "target_column": "15",
+    "target_column": "drafted",
     "problem_type": "classification",
     "task_description": "AutoDS automated feature engineering",
     "missing_drop_threshold": 0.6,
@@ -15,272 +15,902 @@
     "save_artifacts": true,
     "output_dir": "D:\\LangChain\\AUTODS_\\autods_pipeline_output\\03_feature_engineering",
     "random_state": 42,
-    "use_llm_planner": false,
+    "use_llm_planner": true,
     "llm_model": "gpt-4.1-mini",
     "llm_temperature": 0.0
   },
   "column_profiles": [
     {
-      "name": "1",
+      "name": "team",
+      "inferred_type": "categorical",
+      "missing_ratio": 0.0,
+      "nunique": 355,
+      "sample_values": [
+        "pacific",
+        "mississippi",
+        "stephen f. austin",
+        "virginia",
+        "elon"
+      ],
+      "dropped_reason": null
+    },
+    {
+      "name": "conf",
+      "inferred_type": "categorical",
+      "missing_ratio": 0.0,
+      "nunique": 35,
+      "sample_values": [
+        "bw",
+        "sec",
+        "slnd",
+        "acc",
+        "sc"
+      ],
+      "dropped_reason": null
+    },
+    {
+      "name": "gp",
       "inferred_type": "numeric",
       "missing_ratio": 0.0,
-      "nunique": 62,
+      "nunique": 41,
       "sample_values": [
-        "39",
-        "38",
-        "53",
+        "26",
+        "2",
+        "4",
         "28",
-        "37"
+        "21"
       ],
       "dropped_reason": null
     },
     {
-      "name": "2",
-      "inferred_type": "categorical",
-      "missing_ratio": 0.0,
-      "nunique": 9,
-      "sample_values": [
-        "state-gov",
-        "private",
-        "private",
-        "private",
-        "private"
-      ],
-      "dropped_reason": null
-    },
-    {
-      "name": "3",
+      "name": "min_per",
       "inferred_type": "numeric",
       "missing_ratio": 0.0,
-      "nunique": 16076,
+      "nunique": 887,
       "sample_values": [
-        "77516",
-        "215646",
-        "234721",
-        "338409",
-        "284582"
+        "52.6",
+        "0.8",
+        "0.6",
+        "59.2",
+        "13.7"
       ],
       "dropped_reason": null
     },
     {
-      "name": "4",
-      "inferred_type": "categorical",
-      "missing_ratio": 0.0,
-      "nunique": 12,
-      "sample_values": [
-        "bachelors",
-        "hs-grad",
-        "11th",
-        "bachelors",
-        "masters"
-      ],
-      "dropped_reason": null
-    },
-    {
-      "name": "5",
+      "name": "ortg",
       "inferred_type": "numeric",
       "missing_ratio": 0.0,
-      "nunique": 12,
+      "nunique": 1257,
       "sample_values": [
-        "13",
-        "9",
-        "7",
-        "13",
-        "14"
+        "111.8",
+        "63.6",
+        "61.4",
+        "88.2",
+        "47.5"
       ],
       "dropped_reason": null
     },
     {
-      "name": "6",
+      "name": "usg",
+      "inferred_type": "numeric",
+      "missing_ratio": 0.0,
+      "nunique": 370,
+      "sample_values": [
+        "19.3",
+        "29.6",
+        "21.7",
+        "21.7",
+        "15.0"
+      ],
+      "dropped_reason": null
+    },
+    {
+      "name": "efg",
+      "inferred_type": "numeric",
+      "missing_ratio": 0.0,
+      "nunique": 552,
+      "sample_values": [
+        "61.8",
+        "33.3",
+        "50.0",
+        "46.2",
+        "26.2"
+      ],
+      "dropped_reason": null
+    },
+    {
+      "name": "ts_per",
+      "inferred_type": "numeric",
+      "missing_ratio": 0.0,
+      "nunique": 3397,
+      "sample_values": [
+        "64.93",
+        "33.33",
+        "50.0",
+        "47.25",
+        "26.2"
+      ],
+      "dropped_reason": null
+    },
+    {
+      "name": "orb_per",
+      "inferred_type": "numeric",
+      "missing_ratio": 0.0,
+      "nunique": 251,
+      "sample_values": [
+        "1.1",
+        "0.0",
+        "0.0",
+        "1.5",
+        "5.8"
+      ],
+      "dropped_reason": null
+    },
+    {
+      "name": "drb_per",
+      "inferred_type": "numeric",
+      "missing_ratio": 0.0,
+      "nunique": 344,
+      "sample_values": [
+        "7.5",
+        "21.5",
+        "0.0",
+        "9.7",
+        "2.3"
+      ],
+      "dropped_reason": null
+    },
+    {
+      "name": "ast_per",
+      "inferred_type": "numeric",
+      "missing_ratio": 0.0,
+      "nunique": 403,
+      "sample_values": [
+        "17.6",
+        "0.0",
+        "0.0",
+        "25.2",
+        "10.2"
+      ],
+      "dropped_reason": null
+    },
+    {
+      "name": "to_per",
+      "inferred_type": "numeric",
+      "missing_ratio": 0.0,
+      "nunique": 558,
+      "sample_values": [
+        "24.7",
+        "19.6",
+        "40.3",
+        "27.4",
+        "47.1"
+      ],
+      "dropped_reason": null
+    },
+    {
+      "name": "ftm",
+      "inferred_type": "numeric",
+      "missing_ratio": 0.0,
+      "nunique": 107,
+      "sample_values": [
+        "41",
+        "0",
+        "0",
+        "20",
+        "1"
+      ],
+      "dropped_reason": null
+    },
+    {
+      "name": "fta",
+      "inferred_type": "numeric",
+      "missing_ratio": 0.0,
+      "nunique": 165,
+      "sample_values": [
+        "49",
+        "0",
+        "0",
+        "35",
+        "4"
+      ],
+      "dropped_reason": null
+    },
+    {
+      "name": "ft_per",
+      "inferred_type": "numeric",
+      "missing_ratio": 0.0,
+      "nunique": 577,
+      "sample_values": [
+        "0.837",
+        "0.0",
+        "0.0",
+        "0.571",
+        "0.25"
+      ],
+      "dropped_reason": null
+    },
+    {
+      "name": "twopm",
+      "inferred_type": "numeric",
+      "missing_ratio": 0.0,
+      "nunique": 143,
+      "sample_values": [
+        "24",
+        "2",
+        "1",
+        "49",
+        "4"
+      ],
+      "dropped_reason": null
+    },
+    {
+      "name": "twopa",
+      "inferred_type": "numeric",
+      "missing_ratio": 0.0,
+      "nunique": 302,
+      "sample_values": [
+        "61",
+        "5",
+        "2",
+        "108",
+        "15"
+      ],
+      "dropped_reason": null
+    },
+    {
+      "name": "twop_per",
+      "inferred_type": "numeric",
+      "missing_ratio": 0.0,
+      "nunique": 515,
+      "sample_values": [
+        "0.393",
+        "0.4",
+        "0.5",
+        "0.454",
+        "0.267"
+      ],
+      "dropped_reason": null
+    },
+    {
+      "name": "tpm",
+      "inferred_type": "numeric",
+      "missing_ratio": 0.0,
+      "nunique": 53,
+      "sample_values": [
+        "52",
+        "0",
+        "0",
+        "33",
+        "1"
+      ],
+      "dropped_reason": null
+    },
+    {
+      "name": "tpa",
+      "inferred_type": "numeric",
+      "missing_ratio": 0.0,
+      "nunique": 170,
+      "sample_values": [
+        "109",
+        "1",
+        "0",
+        "105",
+        "6"
+      ],
+      "dropped_reason": null
+    },
+    {
+      "name": "tp_per",
+      "inferred_type": "numeric",
+      "missing_ratio": 0.0,
+      "nunique": 398,
+      "sample_values": [
+        "0.495",
+        "0.0",
+        "0.0",
+        "0.314",
+        "0.167"
+      ],
+      "dropped_reason": null
+    },
+    {
+      "name": "blk_per",
+      "inferred_type": "numeric",
+      "missing_ratio": 0.0,
+      "nunique": 97,
+      "sample_values": [
+        "0.4",
+        "0.0",
+        "0.0",
+        "0.3",
+        "0.0"
+      ],
+      "dropped_reason": null
+    },
+    {
+      "name": "stl_per",
+      "inferred_type": "numeric",
+      "missing_ratio": 0.0,
+      "nunique": 72,
+      "sample_values": [
+        "1.6",
+        "0.0",
+        "7.000000000000001",
+        "3.0",
+        "1.5"
+      ],
+      "dropped_reason": null
+    },
+    {
+      "name": "ftr",
+      "inferred_type": "numeric",
+      "missing_ratio": 0.0,
+      "nunique": 937,
+      "sample_values": [
+        "28.8",
+        "0.0",
+        "0.0",
+        "16.4",
+        "19.0"
+      ],
+      "dropped_reason": null
+    },
+    {
+      "name": "ht",
       "inferred_type": "categorical",
       "missing_ratio": 0.0,
-      "nunique": 7,
+      "nunique": 31,
       "sample_values": [
-        "never-married",
-        "divorced",
-        "married-civ-spouse",
-        "married-civ-spouse",
-        "married-civ-spouse"
+        "11-may",
+        "2-jun",
+        "1-jun",
+        "1-jun",
+        "2-jun"
       ],
       "dropped_reason": null
     },
     {
-      "name": "7",
-      "inferred_type": "categorical",
+      "name": "porpag",
+      "inferred_type": "id_like",
       "missing_ratio": 0.0,
-      "nunique": 15,
+      "nunique": 12130,
       "sample_values": [
-        "adm-clerical",
-        "handlers-cleaners",
-        "handlers-cleaners",
-        "prof-specialty",
-        "exec-managerial"
+        "2.30369",
+        "-0.101609",
+        "-0.141202",
+        "0.827105",
+        "-1.11004"
       ],
-      "dropped_reason": null
+      "dropped_reason": "id_like_column"
     },
     {
-      "name": "8",
-      "inferred_type": "categorical",
+      "name": "adjoe",
+      "inferred_type": "id_like",
       "missing_ratio": 0.0,
-      "nunique": 6,
+      "nunique": 11948,
       "sample_values": [
-        "not-in-family",
-        "not-in-family",
-        "husband",
-        "wife",
-        "wife"
+        "109.151",
+        "78.4105",
+        "61.0142",
+        "94.3322",
+        "41.8114"
+      ],
+      "dropped_reason": "id_like_column"
+    },
+    {
+      "name": "pfr",
+      "inferred_type": "numeric",
+      "missing_ratio": 0.0,
+      "nunique": 135,
+      "sample_values": [
+        "2.4",
+        "4.0",
+        "0.0",
+        "4.1",
+        "4.7"
       ],
       "dropped_reason": null
     },
     {
-      "name": "9",
-      "inferred_type": "categorical",
+      "name": "year",
+      "inferred_type": "numeric",
+      "missing_ratio": 0.0,
+      "nunique": 10,
+      "sample_values": [
+        "2009",
+        "2009",
+        "2009",
+        "2009",
+        "2009"
+      ],
+      "dropped_reason": null
+    },
+    {
+      "name": "ast_tov",
+      "inferred_type": "numeric",
+      "missing_ratio": 0.0,
+      "nunique": 6508,
+      "sample_values": [
+        "1.13729282",
+        "0.0",
+        "0.0",
+        "1.2",
+        "0.47369586"
+      ],
+      "dropped_reason": null
+    },
+    {
+      "name": "rimmade",
+      "inferred_type": "numeric",
+      "missing_ratio": 0.0,
+      "nunique": 76,
+      "sample_values": [
+        "9.0",
+        "9.0",
+        "9.0",
+        "9.0",
+        "9.0"
+      ],
+      "dropped_reason": null
+    },
+    {
+      "name": "rimmade_rimmiss",
+      "inferred_type": "numeric",
+      "missing_ratio": 0.0,
+      "nunique": 138,
+      "sample_values": [
+        "17.0",
+        "17.0",
+        "17.0",
+        "17.0",
+        "17.0"
+      ],
+      "dropped_reason": null
+    },
+    {
+      "name": "midmade",
+      "inferred_type": "numeric",
+      "missing_ratio": 0.0,
+      "nunique": 38,
+      "sample_values": [
+        "4.0",
+        "4.0",
+        "4.0",
+        "4.0",
+        "4.0"
+      ],
+      "dropped_reason": null
+    },
+    {
+      "name": "midmade_midmiss",
+      "inferred_type": "numeric",
+      "missing_ratio": 0.0,
+      "nunique": 117,
+      "sample_values": [
+        "14.0",
+        "14.0",
+        "14.0",
+        "14.0",
+        "14.0"
+      ],
+      "dropped_reason": null
+    },
+    {
+      "name": "rim_ratio",
+      "inferred_type": "numeric",
+      "missing_ratio": 0.0,
+      "nunique": 1280,
+      "sample_values": [
+        "0.5568",
+        "0.5568",
+        "0.5568",
+        "0.5568",
+        "0.5568"
+      ],
+      "dropped_reason": null
+    },
+    {
+      "name": "mid_ratio",
+      "inferred_type": "numeric",
+      "missing_ratio": 0.0,
+      "nunique": 961,
+      "sample_values": [
+        "0.3158",
+        "0.3158",
+        "0.3158",
+        "0.3158",
+        "0.3158"
+      ],
+      "dropped_reason": null
+    },
+    {
+      "name": "dunksmade",
+      "inferred_type": "numeric",
       "missing_ratio": 0.0,
       "nunique": 5,
       "sample_values": [
-        "white",
-        "white",
-        "black",
-        "black",
-        "white"
+        "0.0",
+        "0.0",
+        "0.0",
+        "0.0",
+        "0.0"
       ],
       "dropped_reason": null
     },
     {
-      "name": "10",
-      "inferred_type": "categorical",
-      "missing_ratio": 0.0,
-      "nunique": 2,
-      "sample_values": [
-        "male",
-        "male",
-        "male",
-        "female",
-        "female"
-      ],
-      "dropped_reason": null
-    },
-    {
-      "name": "11",
+      "name": "dunksmiss_dunksmade",
       "inferred_type": "numeric",
       "missing_ratio": 0.0,
-      "nunique": 104,
+      "nunique": 9,
       "sample_values": [
-        "2174",
-        "0",
-        "0",
-        "0",
-        "0"
+        "0.0",
+        "0.0",
+        "0.0",
+        "0.0",
+        "0.0"
       ],
       "dropped_reason": null
     },
     {
-      "name": "12",
+      "name": "drtg",
       "inferred_type": "numeric",
       "missing_ratio": 0.0,
-      "nunique": 82,
+      "nunique": 10036,
       "sample_values": [
-        "0",
-        "0",
-        "0",
-        "0",
-        "0"
+        "105.999",
+        "105.397",
+        "81.0144",
+        "101.785",
+        "112.99"
       ],
       "dropped_reason": null
     },
     {
-      "name": "13",
+      "name": "adrtg",
       "inferred_type": "numeric",
       "missing_ratio": 0.0,
-      "nunique": 20,
+      "nunique": 10594,
       "sample_values": [
-        "40",
-        "40",
-        "40",
-        "40",
-        "40"
+        "106.165",
+        "97.7254",
+        "82.0506",
+        "95.4962",
+        "113.275"
       ],
       "dropped_reason": null
     },
     {
-      "name": "14",
-      "inferred_type": "categorical",
+      "name": "dporpag",
+      "inferred_type": "id_like",
       "missing_ratio": 0.0,
-      "nunique": 42,
+      "nunique": 12218,
       "sample_values": [
-        "united-states",
-        "united-states",
-        "united-states",
-        "cuba",
-        "united-states"
+        "1.86102",
+        "0.495196",
+        "0.268504",
+        "2.52857",
+        "0.33968"
+      ],
+      "dropped_reason": "id_like_column"
+    },
+    {
+      "name": "stops",
+      "inferred_type": "id_like",
+      "missing_ratio": 0.0,
+      "nunique": 12216,
+      "sample_values": [
+        "96.1652",
+        "1.75477",
+        "1.72111",
+        "125.327",
+        "19.7045"
+      ],
+      "dropped_reason": "id_like_column"
+    },
+    {
+      "name": "bpm",
+      "inferred_type": "id_like",
+      "missing_ratio": 0.0,
+      "nunique": 12053,
+      "sample_values": [
+        "1.18281",
+        "-21.3346",
+        "-2.05056",
+        "0.700353",
+        "-11.4"
+      ],
+      "dropped_reason": "id_like_column"
+    },
+    {
+      "name": "obpm",
+      "inferred_type": "id_like",
+      "missing_ratio": 0.0,
+      "nunique": 12034,
+      "sample_values": [
+        "2.62786",
+        "-13.0286",
+        "-9.07929",
+        "-0.339201",
+        "-9.04576"
+      ],
+      "dropped_reason": "id_like_column"
+    },
+    {
+      "name": "dbpm",
+      "inferred_type": "id_like",
+      "missing_ratio": 0.0,
+      "nunique": 12088,
+      "sample_values": [
+        "-1.44506",
+        "-8.30598",
+        "7.02873",
+        "1.03955",
+        "-2.35429"
+      ],
+      "dropped_reason": "id_like_column"
+    },
+    {
+      "name": "gbpm",
+      "inferred_type": "id_like",
+      "missing_ratio": 0.0,
+      "nunique": 11971,
+      "sample_values": [
+        "1.51098",
+        "-12.5231",
+        "-0.610312",
+        "-0.134141",
+        "-14.0625"
+      ],
+      "dropped_reason": "id_like_column"
+    },
+    {
+      "name": "mp",
+      "inferred_type": "numeric",
+      "missing_ratio": 0.0,
+      "nunique": 5630,
+      "sample_values": [
+        "27.1923",
+        "5.0",
+        "1.75",
+        "23.8929",
+        "7.7143"
       ],
       "dropped_reason": null
+    },
+    {
+      "name": "ogbpm",
+      "inferred_type": "id_like",
+      "missing_ratio": 0.0,
+      "nunique": 12009,
+      "sample_values": [
+        "2.85299",
+        "-7.1021",
+        "-7.07681",
+        "-1.59327",
+        "-10.3056"
+      ],
+      "dropped_reason": "id_like_column"
+    },
+    {
+      "name": "dgbpm",
+      "inferred_type": "id_like",
+      "missing_ratio": 0.0,
+      "nunique": 12060,
+      "sample_values": [
+        "-1.34201",
+        "-5.42104",
+        "6.4665",
+        "1.45913",
+        "-3.75694"
+      ],
+      "dropped_reason": "id_like_column"
+    },
+    {
+      "name": "oreb",
+      "inferred_type": "numeric",
+      "missing_ratio": 0.0,
+      "nunique": 958,
+      "sample_values": [
+        "0.2308",
+        "0.0",
+        "0.0",
+        "0.3214",
+        "0.381"
+      ],
+      "dropped_reason": null
+    },
+    {
+      "name": "dreb",
+      "inferred_type": "numeric",
+      "missing_ratio": 0.0,
+      "nunique": 1608,
+      "sample_values": [
+        "1.5769",
+        "1.0",
+        "0.0",
+        "2.0357",
+        "0.1429"
+      ],
+      "dropped_reason": null
+    },
+    {
+      "name": "treb",
+      "inferred_type": "numeric",
+      "missing_ratio": 0.0,
+      "nunique": 2080,
+      "sample_values": [
+        "1.8077",
+        "1.0",
+        "0.0",
+        "2.3571",
+        "0.5238"
+      ],
+      "dropped_reason": null
+    },
+    {
+      "name": "ast",
+      "inferred_type": "numeric",
+      "missing_ratio": 0.0,
+      "nunique": 1219,
+      "sample_values": [
+        "2.2308",
+        "0.0",
+        "0.0",
+        "3.0",
+        "0.4286"
+      ],
+      "dropped_reason": null
+    },
+    {
+      "name": "stl",
+      "inferred_type": "numeric",
+      "missing_ratio": 0.0,
+      "nunique": 692,
+      "sample_values": [
+        "0.6538",
+        "0.0",
+        "0.25",
+        "1.2857",
+        "0.1905"
+      ],
+      "dropped_reason": null
+    },
+    {
+      "name": "blk",
+      "inferred_type": "numeric",
+      "missing_ratio": 0.0,
+      "nunique": 437,
+      "sample_values": [
+        "0.0769",
+        "0.0",
+        "0.0",
+        "0.0714",
+        "0.0"
+      ],
+      "dropped_reason": null
+    },
+    {
+      "name": "pts",
+      "inferred_type": "numeric",
+      "missing_ratio": 0.0,
+      "nunique": 3435,
+      "sample_values": [
+        "9.6538",
+        "2.0",
+        "0.5",
+        "7.75",
+        "0.5714"
+      ],
+      "dropped_reason": null
+    },
+    {
+      "name": "player_id",
+      "inferred_type": "id_like",
+      "missing_ratio": 0.0,
+      "nunique": 12155,
+      "sample_values": [
+        "681edf6e-41cb-4fd1-ba91-da573e063fbc",
+        "3542dcb7-19ad-47f2-8b3a-eb79eb3ec4c4",
+        "ca0d8700-807d-4fce-a7a9-63922d1981e6",
+        "01285c6b-bc71-4fa8-941a-28cf3976a117",
+        "a962c41c-55ff-461e-8585-db32e4fa0580"
+      ],
+      "dropped_reason": "id_like_column"
     }
   ],
   "feature_names": [
-    "1",
-    "3",
-    "5",
-    "11",
-    "12",
-    "13",
-    "2",
-    "2_RARE",
-    "2_federal_gov",
-    "2_local_gov",
-    "2_private",
-    "2_self_emp_inc",
-    "2_self_emp_not_inc",
-    "2_state_gov",
-    "4_10th",
-    "4_11th",
-    "4_12th",
-    "4_9th",
-    "4_assoc_acdm",
-    "4_assoc_voc",
-    "4_bachelors",
-    "4_doctorate",
-    "4_hs_grad",
-    "4_masters",
-    "4_prof_school",
-    "4_some_college",
-    "6_RARE",
-    "6_divorced",
-    "6_married_civ_spouse",
-    "6_married_spouse_absent",
-    "6_never_married",
-    "6_separated",
-    "6_widowed",
-    "7",
-    "7_RARE",
-    "7_adm_clerical",
-    "7_craft_repair",
-    "7_exec_managerial",
-    "7_farming_fishing",
-    "7_handlers_cleaners",
-    "7_machine_op_inspct",
-    "7_other_service",
-    "7_prof_specialty",
-    "7_protective_serv",
-    "7_sales",
-    "7_tech_support",
-    "7_transport_moving",
-    "8_husband",
-    "8_not_in_family",
-    "8_other_relative",
-    "8_own_child",
-    "8_unmarried",
-    "8_wife",
-    "9_RARE",
-    "9_asian_pac_islander",
-    "9_black",
-    "9_white",
-    "10_female",
-    "10_male",
-    "14",
-    "14_RARE",
-    "14_mexico",
-    "14_united_states"
+    "gp",
+    "min_per",
+    "ortg",
+    "usg",
+    "efg",
+    "ts_per",
+    "orb_per",
+    "drb_per",
+    "ast_per",
+    "to_per",
+    "ftm",
+    "ft_per",
+    "twopm",
+    "twop_per",
+    "tpm",
+    "tp_per",
+    "blk_per",
+    "stl_per",
+    "ftr",
+    "pfr",
+    "year",
+    "ast_tov",
+    "rimmade",
+    "midmade",
+    "rim_ratio",
+    "mid_ratio",
+    "dunksmade",
+    "drtg",
+    "adrtg",
+    "oreb",
+    "dreb",
+    "ast",
+    "stl",
+    "blk",
+    "pts",
+    "team_RARE",
+    "conf_RARE",
+    "conf_a10",
+    "conf_acc",
+    "conf_ae",
+    "conf_amer",
+    "conf_asun",
+    "conf_b10",
+    "conf_b12",
+    "conf_be",
+    "conf_bsky",
+    "conf_bsth",
+    "conf_bw",
+    "conf_caa",
+    "conf_cusa",
+    "conf_horz",
+    "conf_ivy",
+    "conf_maac",
+    "conf_mac",
+    "conf_meac",
+    "conf_mvc",
+    "conf_mwc",
+    "conf_nec",
+    "conf_ovc",
+    "conf_p10",
+    "conf_p12",
+    "conf_pat",
+    "conf_sb",
+    "conf_sc",
+    "conf_sec",
+    "conf_slnd",
+    "conf_sum",
+    "conf_swac",
+    "conf_wac",
+    "conf_wcc",
+    "ht_1_jun",
+    "ht_10_jun",
+    "ht_10_may",
+    "ht_11_jun",
+    "ht_11_may",
+    "ht_2_jun",
+    "ht_3_jun",
+    "ht_4_jun",
+    "ht_5_jun",
+    "ht_6_jun",
+    "ht_7_jun",
+    "ht_8_jun",
+    "ht_9_jun",
+    "ht_9_may",
+    "ht_RARE",
+    "ht_jul_00",
+    "ht_jun_00"
   ],
-  "llm_plan": {}
+  "llm_plan": {
+    "planner_status": "disabled_or_unavailable",
+    "actions": [],
+    "reason": "LLM is not configured. Falling back to rule-based feature engineering."
+  }
 }

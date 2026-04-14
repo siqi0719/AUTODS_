@@ -1,23 +1,44 @@
 [build-system]
-requires = ["setuptools>=45", "wheel"]
+requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "data-cleaning-project"
-version = "0.1.0"
-description = "Data Cleaning Agent using LangChain"
-authors = [{name = "Your Name", email = "your.email@example.com"}]
-requires-python = ">=3.9"
+name = "autods"
+version = "0.2.0"
+description = "AutoDS — Automated Data Science Pipeline with Conversational Dashboard"
+authors = [{name = "AutoDS Team"}]
+requires-python = ">=3.10"
 dependencies = [
-    "langchain>=0.1.0",
-    "openai>=0.27.0",
-    "pandas>=1.3.0",
-    "numpy>=1.21.0",
-    "scikit-learn>=1.0.0",
-    "python-dotenv>=0.21.0",
+    # Core ML / Data
+    "pandas>=2.0.0",
+    "numpy>=1.24.0",
+    "scikit-learn>=1.3.0",
+    "joblib>=1.3.0",
+    # Boosting models
+    "xgboost>=2.0.0",
+    "lightgbm>=4.0.0",
+    # LLM / LangChain
+    "anthropic>=0.28.0",
+    "openai>=1.30.0",
+    "langchain>=0.2.0",
+    "langchain-core>=0.2.0",
+    "langchain-openai>=0.1.0",
+    # Frontend
+    "streamlit>=1.35.0",
+    "plotly>=5.20.0",
+    # Utilities
+    "python-dotenv>=1.0.0",
 ]
 
 [project.optional-dependencies]
-dev = [
-    "pytest>=7.0.0",
+tuning = [
+    "optuna>=3.4.0",
 ]
+dev = [
+    "pytest>=7.4.0",
+    "optuna>=3.4.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["autods*"]
