@@ -60,10 +60,14 @@ class PlannerAgent:
 
     def _load_dotenv(self):
         try:
-            from dotenv import load_dotenv
-            load_dotenv()
-        except ImportError:
-            pass
+            from utils import load_project_env
+            load_project_env(__file__)
+        except Exception:
+            try:
+                from dotenv import load_dotenv
+                load_dotenv()
+            except ImportError:
+                pass
 
     def _init_llm(self):
         from utils import build_chat_llm

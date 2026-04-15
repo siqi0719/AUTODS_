@@ -14,34 +14,67 @@ import numpy as np
 # ---------------------------------------------------------------------------
 
 _QWEN_BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+_DEFAULT_ANTHROPIC_MODEL = "claude-3-5-haiku-20241022"
 _DEFAULT_QWEN_MODEL = "qwen-plus"
 _DEFAULT_OPENAI_MODEL = "gpt-4o-mini"
+
+
+def _is_placeholder(key: str) -> bool:
+    if not key:
+        return True
+    n = key.strip().lower()
+    return "placeholder" in n or "your_" in n or n.endswith("_here")
 
 
 def build_chat_llm(
     model: Optional[str] = None,
     temperature: float = 0.0,
 ):
-    """Return the best available ChatOpenAI-compatible LLM client.
+    """Return the best available LLM client.
 
     Priority:
-      1. Qwen (DashScope) — if DASHSCOPE_API_KEY is set
-      2. OpenAI            — if OPENAI_API_KEY is set
-      3. None              — rule-based fallback
+      1. Anthropic (Claude) — if ANTHROPIC_API_KEY is set
+      2. Qwen (DashScope)   — if DASHSCOPE_API_KEY is set
+      3. OpenAI             — if OPENAI_API_KEY is set
+      4. None               — rule-based fallback
 
     The caller can pass a specific ``model`` name; when omitted the function
-    uses QWEN_MODEL / OPENAI_MODEL env vars, falling back to sensible defaults.
+    uses provider-specific env vars, falling back to sensible defaults.
     """
+    # ── 1. Anthropic (Claude) ─────────────────────────────────────────────────
+    anthropic_key = os.getenv("ANTHROPIC_API_KEY", "")
+    if not _is_placeholder(anthropic_key):
+        try:
+            from langchain_anthropic import ChatAnthropic
+            _is_non_anthropic_name = model and (
+                model.startswith("gpt-") or model.startswith("o1")
+                or model.startswith("o3") or model.startswith("qwen")
+            )
+            anthropic_model = (
+                os.getenv("ANTHROPIC_MODEL", _DEFAULT_ANTHROPIC_MODEL)
+                if (model is None or _is_non_anthropic_name)
+                else model
+            )
+            llm = ChatAnthropic(
+                model=anthropic_model,
+                temperature=temperature,
+                api_key=anthropic_key,
+            )
+            print(f"[LLM] Using Anthropic ({anthropic_model})")
+            return llm
+        except ImportError:
+            print("[LLM] langchain-anthropic not installed; skipping Anthropic.")
+        except Exception as exc:
+            print(f"[LLM] Anthropic init failed: {exc}")
+
     try:
         from langchain_openai import ChatOpenAI
     except ImportError:
         return None
 
-    # ── 1. Qwen (DashScope) ──────────────────────────────────────────────────
+    # ── 2. Qwen (DashScope) ───────────────────────────────────────────────────
     dashscope_key = os.getenv("DASHSCOPE_API_KEY", "")
-    if dashscope_key and "placeholder" not in dashscope_key.lower():
-        # If the caller passed an OpenAI-specific model name (gpt-*, o1-*, o3-*),
-        # replace it with the Qwen model — those names don't exist on DashScope.
+    if not _is_placeholder(dashscope_key):
         _is_openai_name = model and (
             model.startswith("gpt-") or model.startswith("o1") or model.startswith("o3")
         )
@@ -62,9 +95,9 @@ def build_chat_llm(
         except Exception as exc:
             print(f"[LLM] Qwen init failed: {exc}")
 
-    # ── 2. OpenAI ────────────────────────────────────────────────────────────
+    # ── 3. OpenAI ─────────────────────────────────────────────────────────────
     openai_key = os.getenv("OPENAI_API_KEY", "")
-    if openai_key and "placeholder" not in openai_key.lower():
+    if not _is_placeholder(openai_key):
         openai_model = model or os.getenv("OPENAI_MODEL", _DEFAULT_OPENAI_MODEL)
         base_url = os.getenv("OPENAI_BASE_URL") or None
         try:

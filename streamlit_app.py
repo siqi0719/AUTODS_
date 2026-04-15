@@ -18,6 +18,13 @@ PROJECT_ROOT = Path(__file__).parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+# ── Load .env (must happen before any agent imports so API keys are visible) ──
+try:
+    from utils import load_project_env
+    load_project_env(__file__)
+except Exception:
+    pass
+
 BASE = PROJECT_ROOT / "autods_pipeline_output"
 
 # ── Brand tokens ──────────────────────────────────────────────────────────────
@@ -275,7 +282,67 @@ def get_pipeline_data() -> dict:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# CHAT ANSWER ENGINE  (no LLM — rule-based translation layer)
+# LLM CLIENT  (cached per Streamlit process)
+# ─────────────────────────────────────────────────────────────────────────────
+
+@st.cache_resource
+def _get_llm():
+    """Return the shared LLM client, or None when no API key is available."""
+    try:
+        from utils import build_chat_llm
+        return build_chat_llm()
+    except Exception:
+        return None
+
+
+def _llm_answer(question: str, d: dict) -> str:
+    """LLM fallback for questions the rule engine doesn't recognise."""
+    llm = _get_llm()
+    if llm is None:
+        return (
+            "I can answer the following questions — click or type one:\n\n"
+            "• What does this dataset look like?\n"
+            "• How good is the model?\n"
+            "• What are the risks?\n"
+            "• Which features matter most?\n"
+            "• What should I do next?\n"
+            "• Is the model ready to deploy?"
+        )
+    pm = d["primary_metric"]
+    metric_val = d["bm"].get(f"test_{pm}", d["bm"].get("test_roc_auc", 0)) or 0
+    context = (
+        f"AutoDS automated ML pipeline results:\n"
+        f"- Task: {d['problem_type']} · Target column: {d['target_column']}\n"
+        f"- Best model: {d['best_model_name'].replace('_', ' ').title()} · "
+        f"{pm.upper()}={metric_val:.3f}\n"
+        f"- Dataset: {d['n_rows_in']} rows → {d['n_rows_out']} rows after cleaning\n"
+        f"- Final features: {d['final_feat_cnt']}\n"
+        f"- Key findings: {'; '.join(str(f) for f in d['major_findings'][:4])}\n"
+        f"- Risk flags: {'; '.join(str(r) for r in d['primary_risks'][:3]) or 'None detected'}\n"
+        f"- Recommended next steps: {'; '.join(str(s) for s in d['next_steps'][:3])}"
+    )
+    try:
+        from langchain_core.messages import HumanMessage, SystemMessage
+        resp = llm.invoke([
+            SystemMessage(content=(
+                "You are a concise, expert data science advisor embedded in an automated ML platform. "
+                "The user has just run a full pipeline on their dataset and is asking questions about the results. "
+                "Answer in 2-4 sentences using plain language suitable for a business audience. "
+                "Never invent numbers — only use the data provided below.\n\n"
+                + context
+            )),
+            HumanMessage(content=question),
+        ])
+        return str(getattr(resp, "content", resp))
+    except Exception as exc:
+        return (
+            f"I couldn't process that question right now ({type(exc).__name__}). "
+            "Try: How good is the model? What are the key risks? Which features matter most?"
+        )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# CHAT ANSWER ENGINE  (rule-based fast-path; LLM fallback for unknown queries)
 # ─────────────────────────────────────────────────────────────────────────────
 GREETINGS = {"hi","hello","hey","start","help","greetings"}
 
@@ -432,16 +499,8 @@ def _answer(question: str, d: dict) -> str:
             )
         return "**Model Leaderboard (sorted by ROC-AUC):**\n\n" + "\n".join(lines)
 
-    # ── Fallback ──────────────────────────────────────────────────────────────
-    return (
-        "I can answer the following questions — click or type one:\n\n"
-        "• What does this dataset look like?\n"
-        "• How good is the model?\n"
-        "• What are the risks?\n"
-        "• Which features matter most?\n"
-        "• What should I do next?\n"
-        "• Is the model ready to deploy?"
-    )
+    # ── Fallback → LLM ────────────────────────────────────────────────────────
+    return _llm_answer(question, d)
 
 
 def _opening_msg(d: dict) -> str:

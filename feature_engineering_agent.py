@@ -202,7 +202,11 @@ class FeatureEngineeringAgent:
         self.feature_names_: List[str] = []
         self.summary_: Dict[str, Any] = {}
 
-        load_dotenv()
+        try:
+            from utils import load_project_env
+            load_project_env(__file__)
+        except Exception:
+            load_dotenv()
         self.llm = self._init_llm()
 
     def _init_llm(self):
