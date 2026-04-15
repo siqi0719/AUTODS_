@@ -631,13 +631,11 @@ langchain-core>=0.1.0
 
 ## 🎉 Feature Highlights
 
-✅ **Plain-English Configuration** — describe your task in one sentence
 ✅ **Fully Automated** — minimal user intervention required
 ✅ **LLM-Enhanced** — smarter decisions at every stage with graceful fallback
 ✅ **Production Ready** — robust error handling, target-column protection, constraint validation
 ✅ **Comprehensive** — from raw data to business-ready report in one command
 ✅ **Flexible** — works with any tabular dataset; every threshold is configurable
-✅ **Transparent** — detailed logs, per-stage JSON artifacts, and before/after quality metrics
 
 ---
 
