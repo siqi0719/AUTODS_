@@ -336,7 +336,7 @@ class DataCleaningAgent:
                 return np.nan
             return val
 
-        df = df.applymap(_replace_cell)
+        df = df.map(_replace_cell) if hasattr(df, "map") else df.applymap(_replace_cell)
         after = int(df.isna().sum().sum())
         converted = after - before
         print(f"  ✓ {converted} pseudo-null cell(s) converted to NaN"
