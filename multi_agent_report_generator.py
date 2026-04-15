@@ -367,7 +367,8 @@ class MultiAgentReportGenerator:
         self.generation_mode = "template"
         # LLM is enabled when LangChain is available AND at least one API key exists
         _has_key = (
-            bool(os.getenv("DASHSCOPE_API_KEY", ""))
+            bool(os.getenv("ANTHROPIC_API_KEY", ""))
+            or bool(os.getenv("DASHSCOPE_API_KEY", ""))
             or not self._is_placeholder_key(self.api_key)
         )
         self.llm_enabled = self.langchain_available and _has_key
@@ -392,7 +393,7 @@ class MultiAgentReportGenerator:
                     f"({LANGCHAIN_IMPORT_ERROR})."
                 )
             else:
-                self._llm_disabled_reason = "No valid API key detected (set DASHSCOPE_API_KEY or OPENAI_API_KEY)."
+                self._llm_disabled_reason = "No valid API key detected (set ANTHROPIC_API_KEY, DASHSCOPE_API_KEY or OPENAI_API_KEY)."
             if self.config.require_llm:
                 if not self.langchain_available:
                     raise ValueError(
@@ -400,7 +401,7 @@ class MultiAgentReportGenerator:
                         f"Import error: {LANGCHAIN_IMPORT_ERROR}"
                     )
                 raise ValueError(
-                    "Set DASHSCOPE_API_KEY (Qwen) or OPENAI_API_KEY, or disable require_llm."
+                    "Set ANTHROPIC_API_KEY, DASHSCOPE_API_KEY (Qwen), or OPENAI_API_KEY, or disable require_llm."
                 )
             return
 
