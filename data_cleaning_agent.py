@@ -435,7 +435,7 @@ class DataCleaningAgent:
             return False
         sample = non_null.head(20).astype(str)
         try:
-            parsed = pd.to_datetime(sample, infer_datetime_format=True, errors="coerce")
+            parsed = pd.to_datetime(sample, errors="coerce")
             return parsed.notna().mean() >= 0.80
         except Exception:
             return False
@@ -705,7 +705,7 @@ class DataCleaningAgent:
                 continue
             try:
                 df[col] = pd.to_datetime(
-                    df[col], infer_datetime_format=True, errors="coerce"
+                    df[col], errors="coerce"
                 ).dt.strftime("%Y-%m-%d")
                 print(f"  ✓ {col} → YYYY-MM-DD")
             except Exception as exc:

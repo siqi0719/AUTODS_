@@ -412,6 +412,10 @@ class DataSciencePipeline:
 
             print(f"\n⏳ Executing DataCleaningAgent...")
             cleaning_result = agent.run(raw_data)
+            if cleaning_result.get("status") == "failure":
+                raise RuntimeError(
+                    f"DataCleaningAgent failed: {cleaning_result.get('error_message', 'unknown error')}"
+                )
             cleaned_data = cleaning_result['data']
             cleaning_report = cleaning_result.get('report', {})
 
